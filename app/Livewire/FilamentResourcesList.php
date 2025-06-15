@@ -74,6 +74,7 @@ class FilamentResourcesList extends Component
         if ($status === 0) {
             // Erfolg
             session()->flash('message', "Resource {$resourceName} wurde erfolgreich gelöscht.");
+            return redirect()->route('filament.admin.pages.setup');
         } else {
             // Fehler
             session()->flash('error', "Fehler beim Löschen der Resource {$resourceName}.<br>".nl2br($output));
