@@ -16,6 +16,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class TableFieldsResource extends Resource
 {
