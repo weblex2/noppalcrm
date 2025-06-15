@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Facades\Filament;
+use Illuminate\Support\Facades\Schema;
 
 class TableFieldsResource extends Resource
 {
