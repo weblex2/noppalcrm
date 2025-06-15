@@ -22,3 +22,8 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+app/Filament/Resources/TestResource.php
+app/Filament/Resources/TestResource/Pages/CreateTest.php
+app/Filament/Resources/TestResource/Pages/EditTest.php
+app/Filament/Resources/TestResource/Pages/ListTests.php
+app/Models/Test.php
