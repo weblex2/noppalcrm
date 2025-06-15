@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
+Route::redirect('/', '/admin', 301);
+/* Route::get('/', function () {
     return view('welcome');
-});
+}); */
