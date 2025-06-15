@@ -10,7 +10,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use App\Http\Controllers\FilamentAddFieldController;
 use Filament\Notifications\Notification;
-use App\Models\FilTableFields;
+use App\Models\TableFields;
 
 
 class AddFieldComponent extends Component implements HasForms
