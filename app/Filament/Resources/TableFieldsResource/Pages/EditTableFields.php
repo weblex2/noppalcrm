@@ -5,6 +5,8 @@ namespace App\Filament\Resources\TableFieldsResource\Pages;
 use App\Filament\Resources\TableFieldsResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Facades\Filament;
+
 
 class EditTableFields extends EditRecord
 {
