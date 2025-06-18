@@ -18,6 +18,7 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Asmit\ResizedColumn\ResizedColumnPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -63,6 +64,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+            ])
+            ->plugins([
+                // ... other plugins
+                ResizedColumnPlugin::make()
+                ->preserveOnDB() // Enable database storage (optional)
             ]);
     }
 

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "68fad49463268d4aa088fd2b6776e7a1",
+    "content-hash": "2461575595d73638df7b3dc02b49978e",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -71,6 +71,53 @@
                 "source": "https://github.com/AnourValar/eloquent-serialize/tree/1.3.3"
             },
             "time": "2025-05-28T17:07:28+00:00"
+        },
+        {
+            "name": "asmit/resized-column",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/AsmitNepali/resized-column.git",
+                "reference": "06300fd1529f911b7d819d1c5142094667a2aa2a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/AsmitNepali/resized-column/zipball/06300fd1529f911b7d819d1c5142094667a2aa2a",
+                "reference": "06300fd1529f911b7d819d1c5142094667a2aa2a",
+                "shasum": ""
+            },
+            "require": {
+                "filament/support": "^3.2"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Asmit\\ResizedColumn\\ResizedColumnServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Asmit\\ResizedColumn\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "AsmitNepali",
+                    "email": "mail2asmitnepali@gmail.com"
+                }
+            ],
+            "description": "Resizeable column for filament",
+            "support": {
+                "issues": "https://github.com/AsmitNepali/resized-column/issues",
+                "source": "https://github.com/AsmitNepali/resized-column/tree/v1.0.1"
+            },
+            "time": "2025-05-18T15:37:19+00:00"
         },
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -9759,5 +9806,5 @@
         "php": "^8.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.2.0"
 }
