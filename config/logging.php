@@ -127,6 +127,12 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        'crm' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/crm.log'),
+            'level' => 'debug',
+        ]
+
     ],
 
 ];

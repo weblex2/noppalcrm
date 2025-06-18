@@ -6,6 +6,7 @@ use App\Filament\Resources\TableFieldsResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Facades\Filament;
+use App\Http\Controllers\FilamentController;
 
 
 class EditTableFields extends EditRecord
@@ -17,5 +18,20 @@ class EditTableFields extends EditRecord
         return [
             Actions\DeleteAction::make(),
         ];
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        \Log::channel('crm')->info($data);
+        if ($data['type'] === 'relation') {
+            $config['source'] = $data['table'];
+            $config['target'] = $data['relation_table'];
+            $config['method'] = 'belongsTo';
+
+            // Controller-Methode aufrufen
+            $exists = app(FilamentController::class)->checkIfRelationExists($config);
+        }
+
+        return $data;
     }
 }

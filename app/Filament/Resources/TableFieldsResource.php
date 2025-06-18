@@ -64,6 +64,7 @@ class TableFieldsResource extends Resource
                             ->required()
                             ->reactive() // wichtig für Reaktivität
                             ->disabled(fn (string $context) => $context === 'edit')
+                            ->dehydrated(fn (string $context) => $context == 'edit')
                             ->afterStateUpdated(fn (callable $set) => $set('field', null)),
 
                          Forms\Components\Select::make('field')
@@ -71,7 +72,7 @@ class TableFieldsResource extends Resource
                             ->required()
                             ->reactive() // ← das ist ENTSCHEIDEND!
                             ->options(fn (callable $get) => self::getFieldOptions($get('table')))
-                            ->disabled(fn (callable $get) => ! $get('table')), // funktioniert jetzt
+                            ->disabled(fn (callable $get) => ! $get('table')),
 
 
                         Forms\Components\Select::make('type')
