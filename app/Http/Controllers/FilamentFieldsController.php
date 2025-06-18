@@ -170,17 +170,13 @@ class FilamentFieldsController extends Controller
                 $this->format();
                 $this->setVisible();
                 $this->setDisabled();
+                $this->setBgColor();
             }
             // Create View Fields
             else{
                 switch ($tableField->type){
                     case "text": {
-                        if ($this->config->is_badge){
-                            $this->field = Tables\Columns\BadgeColumn::make($tableField->field);
-                        }
-                        else{
-                            $this->field = Tables\Columns\TextColumn::make($tableField->field);
-                        }
+                        $this->field = Tables\Columns\TextColumn::make($tableField->field);
                         break;
                     }
                     case "date": {
@@ -199,37 +195,23 @@ class FilamentFieldsController extends Controller
                         break;
                     }
                     case "badge": {
-                        $this->field = Tables\Columns\BadgeColumn::make($tableField->field);
+                        $this->field = Tables\Columns\TextColumn::make($tableField->field);
+                        $this->field->badge();
                         break;
                     }
                     case "select": {
-                        if ($this->config->is_badge){
-                            $this->field = Tables\Columns\BadgeColumn::make($tableField->field);
-                        }
-                        else{
-                            $this->field = Tables\Columns\TextColumn::make($tableField->field);
-                        }
+                        $this->field = Tables\Columns\TextColumn::make($tableField->field);
                         $this->getSelected();
                         break;
                     }
                     case "link": {
-                        if ($this->config->is_badge){
-                            $this->field = Tables\Columns\BadgeColumn::make($tableField->field);
-                        }
-                        else{
-                            $this->field = Tables\Columns\TextColumn::make($tableField->field);
-                        }
+                        $this->field = Tables\Columns\TextColumn::make($tableField->field);
                         $this->setLink();
                         break;
                     }
 
                     case "number" :{
-                        if ($this->config->is_badge){
-                            $this->field = Tables\Columns\BadgeColumn::make($tableField->field);
-                        }
-                        else{
-                            $this->field = Tables\Columns\TextColumn::make($tableField->field);
-                        }
+                        $this->field = Tables\Columns\TextColumn::make($tableField->field);
                         $this->setNumeric();
                         break;
                     }
@@ -256,6 +238,8 @@ class FilamentFieldsController extends Controller
                 $this->align();
                 $this->setSearchable();
                 $this->setToggable();
+                $this->setBadge();
+                $this->setBgColor();
             }
 
             return  $this->field;
@@ -275,6 +259,14 @@ class FilamentFieldsController extends Controller
         }
     }
 
+
+
+
+    private function setBadge(){
+        if ($this->config->is_badge){
+            $this->field->badge();
+        }
+    }
 
     private function setLabel(){
         if ($this->config->label!=""){
@@ -348,11 +340,16 @@ class FilamentFieldsController extends Controller
     }
 
     private function setColspan(){
-        if ($this->config->colspan==0) {
-            $this->field->columnSpanFull();
+        if ($this->config->colspan===0) {
+            $this->field->columnSpan(1);
+
+        }
+        elseif ($this->config->colspan!="") {
+            $this->field->columnSpan($this->config->colspan);
         }
         else{
-            $this->field->columnSpan($this->config->colspan);
+            $this->field->columnSpan(1);
+            //$this->field->columnSpanFull();
         }
     }
 
@@ -362,6 +359,13 @@ class FilamentFieldsController extends Controller
         }
         if ($this->config->icon_color){
             $this->field->iconColor($this->config->icon_color);
+        }
+    }
+
+    private function setBgColor(){
+        if ($this->config->badge_color!=""){
+            $color = 'background-color: #'.$this->config->badge_color;
+            $this->field->extraAttributes(['style' => $color]);
         }
     }
 
