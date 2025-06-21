@@ -28,7 +28,7 @@ class FilamentController extends Controller
         // get the trait file
         $traitName = ucfirst(Str::singular($config['source']))."Relations";
         $targetPath = app_path("Traits/{$traitName}.php");
-        $stubPath = base_path('app/Filament/stubs/filament/relations/'.$config['method'].'.stub');
+        $stubPath = app_path('Filament/stubs/filament/relations/'.$config['method'].'.stub');
         if (!file_exists($stubPath)){
              throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
         }
