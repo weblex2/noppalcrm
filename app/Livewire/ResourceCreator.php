@@ -162,7 +162,7 @@ class ResourceCreator extends Component implements HasForms
         // check if Trait already exists
         if (!file_exists("app\\Traits\\".$baseName."Relations.php")){
             $path = app_path("Traits/{$baseName}Relations.php");
-            $content = file_get_contents(app_path("Filament\\stubs\\filament\\relations\\traitContent.stub"));
+            $content = file_get_contents(app_path("Filament/stubs/filament/relations/traitContent.stub"));
             $content = str_replace("{{Model}}",$baseName,$content);
             // Ordner erstellen, falls er nicht existiert
             if (!File::exists(dirname($path))) {
