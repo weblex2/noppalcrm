@@ -26,7 +26,9 @@ class EditTableFields extends EditRecord
         if ($data['type'] === 'relation') {
             $config['source'] = $data['table'];
             $config['target'] = $data['relation_table'];
-            $config['method'] = 'belongsTo';
+            $config['method'] = 'BelongsTo';
+            $config['field'] = $data['field'];
+            $config['relation_name'] = $data['relation_table'];
 
             // Controller-Methode aufrufen
             $exists = app(FilamentController::class)->checkIfRelationExists($config);
