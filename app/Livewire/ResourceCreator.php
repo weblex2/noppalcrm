@@ -112,6 +112,7 @@ class ResourceCreator extends Component implements HasForms
 
             if ($status === 0) {
                 $this->removeMigrationFile($resourceName);
+                $this->addTraitToModel($resourceName);
                 session()->flash('success', "✅ Ressource erfolgreich erstellt:\n<pre>$output</pre>");
                 $this->formState = [];
                 Log::info('ResourceCreator: Ressource erstellt', [
@@ -152,6 +153,22 @@ class ResourceCreator extends Component implements HasForms
         // Migration löschen, wenn sie wirklich neu ist
         if ($latestMigration && str_contains($latestMigration->getFilename(), strtolower($tableName))) {
             $res = File::delete($latestMigration->getPathname());
+        }
+    }
+
+    private function addTraitToModel($resourceName){
+        $baseName = Str::studly(class_basename(trim($resourceName,'Resource')));
+        $modelClass = 'App\\Models\\' . $baseName;
+        // check if Trait already exists
+        if (!file_exists("app\\Traits\\".$baseName."Relations.php")){
+            $path = app_path("Traits/{$baseName}Relations.php");
+            $content = file_get_contents(app_path("Filament\\stubs\\filament\\relations\\traitContent.stub"));
+            $content = str_replace("{{Model}}",$baseName,$content);
+            // Ordner erstellen, falls er nicht existiert
+            if (!File::exists(dirname($path))) {
+                File::makeDirectory(dirname($path), 0755, true);
+            }
+            File::put($path, $content);
         }
     }
 }

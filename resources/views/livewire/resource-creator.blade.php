@@ -3,7 +3,11 @@
         <form wire:submit.prevent="createResource" class="space-y-4">
             {{ $this->form }}
 
-            <x-filament::button type="submit">
+            <x-filament::button
+                type="submit"
+                wire:loading.class="opacity-50"
+                wire:target="createResource"
+            >
                 Ressource erstellen
             </x-filament::button>
         </form>

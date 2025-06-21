@@ -13,6 +13,7 @@ use Filament\Tables\Commands\Concerns\CanGenerateTables;
 use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Illuminate\Support\Facades\File;
 
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
@@ -89,20 +90,42 @@ class MakeCustomFilamentResourceCommand extends Command
             $modelPath = app_path('Models/'.str_replace('\\', '/', $model) . '.php');
 
             if (file_exists($modelPath)) {
+                $res = $this->generateTrait($model);
                 $content = file_get_contents($modelPath);
 
-                // Prüfen, ob $guarded schon drinsteht, um nicht doppelt einzufügen
-                if (!str_contains($content, 'protected $guarded')) {
-                    // Property direkt nach der Klassendeklaration einfügen
+                // 1. use-Zeile einfügen, wenn nicht vorhanden
+                $traitName = $model . 'Relations';
+                $useLine = "use App\\Traits\\{$traitName};";
+
+                if (!str_contains($content, $useLine)) {
+                    // Einfügen nach dem letzten use-Statement oder nach namespace
+                    if (preg_match('/(namespace\s+.*?;)(.*?)(use\s+[^\n]+;)?/s', $content, $matches)) {
+                        $replacement = $matches[1] . "\n\n" . $useLine . "\n" . $matches[2] . ($matches[3] ?? '');
+                        $content = preg_replace('/namespace\s+.*?;.*?(use\s+[^\n]+;)?/s', $replacement, $content, 1);
+                    }
+                }
+
+                // 2. use-Trait innerhalb der Klasse ergänzen
+                if (!str_contains($content, "use {$traitName};")) {
                     $content = preg_replace(
                         '/class\s+' . preg_quote($model) . '\s+extends\s+Model\s*\{/',
-                        "class {$model} extends Model\n{\n    protected \$guarded = ['id'];",
+                        "class {$model} extends Model\n{\n    use {$traitName};",
                         $content,
                         1
                     );
-
-                    file_put_contents($modelPath, $content);
                 }
+
+                // 3. $guarded ergänzen (wie bisher)
+                if (!str_contains($content, 'protected $guarded')) {
+                    $content = preg_replace(
+                        '/use\s+' . preg_quote($traitName) . '\s*;/',
+                        "use {$traitName};\n    protected \$guarded = ['id'];",
+                        $content,
+                        1
+                    );
+                }
+
+                file_put_contents($modelPath, $content);
             }
         }
 
@@ -413,5 +436,34 @@ class MakeCustomFilamentResourceCommand extends Command
         }
 
         return $params;
+    }
+
+    protected function generateTrait($baseName){
+        $traitName = "{$baseName}Relations";
+        $stubPath = base_path('app/Filament/stubs/filament/relations/traitContent.stub');
+        $targetPath = app_path("Traits/{$traitName}.php");
+
+        // Stub lesen
+        if (!File::exists($stubPath)) {
+            throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
+        }
+
+        $stubContent = File::get($stubPath);
+
+        // Platzhalter ersetzen
+        $traitContent = str_replace('{{Model}}', $baseName, $stubContent);
+
+        // Zielverzeichnis anlegen, falls nötig
+        $targetDir = dirname($targetPath);
+        if (!File::exists($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+        }
+
+        // Trait-Datei schreiben
+        if (!file_exists($targetPath)){
+            File::put($targetPath, $traitContent);
+            return true;
+        }
+        return false;
     }
 }

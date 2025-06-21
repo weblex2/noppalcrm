@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\File;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 class FilamentController extends Controller
@@ -13,10 +14,32 @@ class FilamentController extends Controller
         $sourceClass = $this->modelForTable(Str::plural($config['source']));
         $targetClass = $this->modelForTable(Str::plural($config['target']));
         $relationType = $config['method'];
+        $relationName = $config['relation_name'];
+        $relationsAlreadyExists =  $this->modelHasRelation($sourceClass, $relationName, $relationType, $targetClass);
+        if (!$relationsAlreadyExists){
+            return $this->createRelation($config, $targetClass);
+        }
+        else{
+            return true;
+        }
+    }
 
-        $modelClass = \App\Models\Contact::class;
-
-        return $this->modelHasRelation($modelClass, 'company', 'BelongsTo', \App\Models\Company::class);
+    private function createRelation($config, $targetClass) :bool{
+        // get the trait file
+        $traitName = ucfirst(Str::singular($config['source']))."Relations";
+        $targetPath = app_path("Traits/{$traitName}.php");
+        $stubPath = base_path('app/Filament/stubs/filament/relations/'.$config['method'].'.stub');
+        if (!file_exists($stubPath)){
+             throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
+        }
+        $stubContent = File::get($stubPath);
+        $stubContent = str_replace('{{targetClass}}', "\\".$targetClass, $stubContent);
+        $stubContent = str_replace('{{field}}', $config['field'], $stubContent);
+        $stubContent .= "\n\n\t##";
+        $targetContent = File::get($targetPath);
+        $targetContent = str_replace('##', $stubContent, $targetContent);
+        File::put($targetPath, $targetContent);
+        return true;
     }
 
     function modelForTable(string $table): ?string
