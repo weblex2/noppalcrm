@@ -18,6 +18,7 @@ use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
+
 class TableFieldsResource extends Resource
 {
     protected static ?string $model = TableFields::class;
@@ -54,6 +55,8 @@ class TableFieldsResource extends Resource
                             ->default(false)  // ← Standardwert setzen
                             ->live()
                             ->disabled(fn (string $context) => $context === 'edit' && request()->get('duplicate') !== '1')
+                            //->dehydrated(fn (string $context) => $context === 'create' && request()->get('duplicate') == '1')
+                            ->dehydrated()
                             ->afterStateUpdated(fn ($state) => info('form-Toggle: ' . var_export($state, true))),
                         Forms\Components\Toggle::make('required'),
                         Forms\Components\Toggle::make('is_badge')->label('Is Badge'),
@@ -64,9 +67,7 @@ class TableFieldsResource extends Resource
                             ->required()
                             ->reactive() // wichtig für Reaktivität
                             ->disabled(fn (string $context) => $context === 'edit')
-                            ->dehydrated(fn (string $context) => $context == 'edit')
-                            ->afterStateUpdated(fn (callable $set) => $set('field', null)),
-
+                            ->dehydrated(),
                          Forms\Components\Select::make('field')
                             ->label('Feld')
                             ->required()
@@ -186,7 +187,7 @@ class TableFieldsResource extends Resource
                         $params['label'] .= ' (Kopie)';
 
                         // Umleiten auf Create-Seite mit den Daten als Query-Parameter
-                        return redirect(route('filament.admin.resources.fil-table-fields.create', ['duplicate_data' => json_encode($params)]));
+                        return redirect(route('filament.admin.resources.table-fields.create', ['duplicate_data' => json_encode($params)]));
                     })
             ])
             ->bulkActions([
