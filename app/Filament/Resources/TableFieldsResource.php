@@ -260,7 +260,7 @@ class TableFieldsResource extends Resource
         }
 
         return collect(Schema::getColumnListing($table))
-            ->mapWithKeys(fn ($column) => [$column => $column])
+            ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
             ->toArray();
     }
 
