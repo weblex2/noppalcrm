@@ -241,6 +241,15 @@ class TableFieldsResource extends Resource
                         $label = Str::plural($label);
                     }
 
+                     if ($label === null) {
+                    // Debug-Ausgabe ins Log oder auf die Konsole
+                    info("DEBUG: Table option label is NULL for table '$table' in resource $resourceClass");
+                    // Für Web-Ausgabe kannst du auch dump() oder dd() verwenden:
+                    dd("DEBUG: Table option label is NULL for table '$table'");
+                    // dd();
+                    $label = $table; // Default setzen
+                }
+
                     if ($label === null) {
                         $label = $table."XXX";  // oder ein Default-Label
                     }
