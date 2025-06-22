@@ -63,7 +63,10 @@ class TableFieldsResource extends Resource
                         Forms\Components\Toggle::make('is_toggable')->label('Toggable'),
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
-                            ->options(self::getTableOptions())
+                            //->options(self::getTableOptions())
+                            ->options(function () {
+                                return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
+                            })
                             ->required()
                             ->reactive() // wichtig für Reaktivität
                             ->disabled(fn (string $context) => $context === 'edit')
@@ -72,7 +75,8 @@ class TableFieldsResource extends Resource
                             ->label('Feld')
                             ->required()
                             ->reactive() // ← das ist ENTSCHEIDEND!
-                            ->options(fn (callable $get) => self::getFieldOptions($get('table')))
+                            //->options(fn (callable $get) => self::getFieldOptions($get('table')))
+                            ->options(fn (callable $get) => array_filter(self::getFieldOptions($get('table')), fn($label) => $label !== null && $label !== ''))
                             ->disabled(fn (callable $get) => ! $get('table')),
 
 
