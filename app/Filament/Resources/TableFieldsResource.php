@@ -241,6 +241,10 @@ class TableFieldsResource extends Resource
                         $label = Str::plural($label);
                     }
 
+                    if ($label === null) {
+                        $label = $table."XXX";  // oder ein Default-Label
+                    }
+
                     $tables[$table] = $label;
                 }
             }
