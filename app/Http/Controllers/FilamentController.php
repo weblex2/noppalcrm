@@ -16,7 +16,10 @@ class FilamentController extends Controller
         $relationType = $config['method'];
         $relationName = $config['relation_name'];
 
-        dd($config);
+        dump($sourceClass);
+        dump($targetClass);
+        dump($relationName);
+        dump($relationType);
         $relationsAlreadyExists =  $this->modelHasRelation($sourceClass, $relationName, $relationType, $targetClass);
         if (!$relationsAlreadyExists){
             return $this->createRelation($config, $targetClass);
