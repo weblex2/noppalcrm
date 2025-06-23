@@ -363,8 +363,8 @@ class FilamentFieldsController extends Controller
     }
 
     private function setBgColor(){
-        if ($this->config->badge_color!=""){
-            $color = 'background-color: #'.$this->config->badge_color;
+        if ($this->config->bgcolor!=""){
+            $color = 'background-color: #'.$this->config->bgcolor;
             $this->field->extraAttributes(['style' => $color]);
         }
     }
