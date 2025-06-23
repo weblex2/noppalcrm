@@ -11,8 +11,8 @@ class FilamentController extends Controller
 {
     function checkIfRelationExists(array $config): bool
     {
-        $sourceClass = $this->modelForTable(Str::plural($config['source']));
-        $targetClass = $this->modelForTable(Str::plural($config['target']));
+        $sourceClass = "\\App\\Models\\". ucfirst(Str::singular($config['source']));
+        $targetClass = "\\App\\Models\\". ucfirst(Str::singular($config['target']));
         $relationType = $config['method'];
         $relationName = $config['relation_name'];
 
@@ -34,7 +34,7 @@ class FilamentController extends Controller
              throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
         }
         $stubContent = File::get($stubPath);
-        $stubContent = str_replace('{{targetClass}}', "\\".$targetClass, $stubContent);
+        $stubContent = str_replace('{{targetClass}}', $targetClass, $stubContent);
         $stubContent = str_replace('{{field}}', $config['field'], $stubContent);
         $stubContent .= "\n\n\t##";
         $targetContent = File::get($targetPath);
@@ -75,7 +75,7 @@ class FilamentController extends Controller
                 return false;
             }
 
-            if ($targetModel && get_class($relation->getRelated()) !== $targetModel) {
+            if ("\\".get_class($relation->getRelated()) !== $targetModel) {
                 return false;
             }
 
