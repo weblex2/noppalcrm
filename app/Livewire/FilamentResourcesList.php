@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
+use Filament\Notifications\Notification;
 
 class FilamentResourcesList extends Component
 {
@@ -63,7 +64,7 @@ class FilamentResourcesList extends Component
 
     public function nukeResource($resourceName)
     {
-        $resourceName = trim($resourceName,'Resource');
+        $resourceName = substr($resourceName,0,-8);
         // Artisan Command ausführen (bitte deinen Command-Namen anpassen)
         $status = Artisan::call('nuke:resource', [
             'name' => $resourceName,
@@ -73,7 +74,12 @@ class FilamentResourcesList extends Component
         $output = $this->commandOutput = Artisan::output();
         if ($status === 0) {
             // Erfolg
-            session()->flash('message', "Resource {$resourceName} wurde erfolgreich gelöscht.");
+            #session()->flash('message', "Resource {$resourceName} wurde erfolgreich gelöscht.");
+            Notification::make()
+                ->title("Resource {$resourceName} gelöscht")
+                ->success()
+                ->body("Die Resource wurde erfolgreich entfernt.")
+                ->send();
             return redirect()->route('filament.admin.pages.setup');
         } else {
             // Fehler
