@@ -16,4 +16,9 @@ class {{ resourcePageClass }} extends {{ baseResourcePageClass }}
 {{ actions }}
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }
