@@ -152,6 +152,7 @@ class FilamentFieldsController extends Controller
                     }
 
                     case "relation": {
+                        #use Filament\Forms\Components\BelongsToSelect;
                         $this->field = Forms\Components\Select::make($tableField->field);
                         $this->setRelationship();
                         break;

@@ -34,6 +34,7 @@ class FilamentController extends Controller
              throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
         }
         $stubContent = File::get($stubPath);
+        $stubContent = str_replace('{{functionName}}', $config['relation_name'], $stubContent);
         $stubContent = str_replace('{{targetClass}}', $targetClass, $stubContent);
         $stubContent = str_replace('{{field}}', $config['field'], $stubContent);
         $stubContent .= "\n\n\t##";

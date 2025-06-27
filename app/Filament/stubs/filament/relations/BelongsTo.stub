@@ -1,4 +1,4 @@
-public function company(): BelongsTo
+public function {{functionName}}(): BelongsTo
     {
         return $this->belongsTo({{targetClass}}::class, '{{field}}');
     }

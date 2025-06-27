@@ -12,6 +12,8 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms\Components\Select;
+use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
@@ -37,7 +39,12 @@ class UserResource extends Resource
                     ->password()
                     ->required()
                     ->maxLength(191),
-            ]);
+                Select::make('roles')
+                    ->label('Rollen')
+                    ->multiple()
+                    ->options(Role::all()->pluck('name', 'id'))
+                    ->relationship('roles', 'name'),
+                    ]);
     }
 
     public static function table(Table $table): Table
