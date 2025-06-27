@@ -16,9 +16,19 @@
                 color="danger"
                 wire:click="nukeResource('{{ class_basename($resource['class']) }}')"
                 size="sm"
+                icon="heroicon-o-archive-box-x-mark"
             >
-                Delete
+                Nuke (no way back, be careful!)
             </x-filament::button>
+
+            <x-filament::button
+                color="info"
+                wire:click=""
+                size="sm"
+                icon="heroicon-m-arrow-path"  {{-- Icon-Klasse --}}            >
+                Rebuild
+            </x-filament::button>
+
             @if ($commandOutput)
                 <div class="bg-gray-100 border border-gray-300 p-4 rounded mt-4 whitespace-pre-wrap font-mono text-sm">
                     {!! nl2br(e($commandOutput)) !!}

@@ -13,7 +13,7 @@ class LogViewer extends Page
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static string $view = 'filament.pages.log-viewer';
     protected static ?string $navigationGroup = 'Configuration';
-
+    protected static ?string $navigationLabel = 'Logs';
     public array $logs = [];
 
     public function mount(): void
