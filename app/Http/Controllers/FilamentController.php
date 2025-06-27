@@ -11,8 +11,8 @@ class FilamentController extends Controller
 {
     function checkIfRelationExists(array $config): bool
     {
-        $sourceClass = "\\App\\Models\\". ucfirst(Str::singular($config['source']));
-        $targetClass = "\\App\\Models\\". ucfirst(Str::singular($config['target']));
+        $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
+        $targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
         $relationType = $config['method'];
         $relationName = $config['relation_name'];
 
@@ -27,7 +27,7 @@ class FilamentController extends Controller
 
     private function createRelation($config, $targetClass) :bool{
         // get the trait file
-        $traitName = ucfirst(Str::singular($config['source']))."Relations";
+        $traitName = Str::studly(Str::singular($config['source']))."Relations";
         $targetPath = app_path("Traits/{$traitName}.php");
         $stubPath = app_path('Filament/stubs/filament/relations/'.$config['method'].'.stub');
         if (!file_exists($stubPath)){
