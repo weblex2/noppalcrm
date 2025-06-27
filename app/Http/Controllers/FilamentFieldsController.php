@@ -241,6 +241,7 @@ class FilamentFieldsController extends Controller
                 $this->setToggable();
                 $this->setBadge();
                 $this->setBgColor();
+                $this->setSortable();
             }
 
             return  $this->field;
@@ -293,8 +294,8 @@ class FilamentFieldsController extends Controller
         }
     }
     private function setSearchable(){
-        if ($this->config->seachable){
-            $this->field->seachable();
+        if ($this->config->searchable){
+            $this->field->searchable();
         }
     }
 

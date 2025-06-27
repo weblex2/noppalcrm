@@ -36,4 +36,17 @@ class EditTableFields extends EditRecord
 
         return $data;
     }
+
+     protected function afterSave(): void
+    {
+        /* Notification::make()
+            ->title('Gespeichert!')
+            ->success()
+            ->send(); */
+
+        // Redirect mit Filter aus URL
+        $this->redirect(
+            route('filament.admin.resources.table-fields.index', request()->query())
+        );
+    }
 }

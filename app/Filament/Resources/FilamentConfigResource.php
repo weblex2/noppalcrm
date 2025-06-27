@@ -21,6 +21,9 @@ class FilamentConfigResource extends Resource
 
     protected static ?string $navigationGroup = 'Configuration';
 
+    protected static ?string $navigationLabel = 'Dopdowns & Navlinks';
+
+
     public static function form(Form $form): Form
     {
         return $form

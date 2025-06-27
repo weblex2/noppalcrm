@@ -17,7 +17,9 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-
+use Filament\Forms\Components\Select;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 
 class TableFieldsResource extends Resource
 {
@@ -61,6 +63,9 @@ class TableFieldsResource extends Resource
                         Forms\Components\Toggle::make('required'),
                         Forms\Components\Toggle::make('is_badge')->label('Is Badge'),
                         Forms\Components\Toggle::make('is_toggable')->label('Toggable'),
+                        Forms\Components\Toggle::make('sortable'),
+                        Forms\Components\Toggle::make('searchable'),
+                        Forms\Components\Toggle::make('disabled')->columnSpan(2),
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
                             //->options(self::getTableOptions())
@@ -74,14 +79,27 @@ class TableFieldsResource extends Resource
                          Forms\Components\Select::make('field')
                             ->label('Feld')
                             ->required()
-                            ->reactive() // ← das ist ENTSCHEIDEND!
-                            //->options(fn (callable $get) => self::getFieldOptions($get('table')))
+                            ->reactive()
+                            ->disabled(function (callable $get, string $context) {
+                                return $context === 'edit' || ! $get('table');
+                            })
                             ->options(fn (callable $get) => array_filter(self::getFieldOptions($get('table')), fn($label) => $label !== null && $label !== ''))
-                            ->disabled(fn (callable $get) => ! $get('table')),
+                            ->dehydrated(),
+
+                        Forms\Components\TextInput::make('label')->required(),
 
 
+                        Forms\Components\TextInput::make('order')->numeric(),
+
+
+                        Forms\Components\TextInput::make('section')->numeric(),
+
+                    ])->columns(4)->collapsible(),
+                    Forms\Components\Section::make('Field Type')
+                    ->schema([
                         Forms\Components\Select::make('type')
                             ->required()
+                            ->reactive()
                             ->options([
                                 'text' => 'Text',
                                 'date' => 'Date',
@@ -91,17 +109,79 @@ class TableFieldsResource extends Resource
                                 'select' => 'Select',
                                 'markdown' => 'Markdown',
                                 'relation' => 'Relation'
-                            ]),
-                        Forms\Components\TextInput::make('label')->required(),
-                        Forms\Components\TextInput::make('order')->numeric(),
-                        Forms\Components\TextInput::make('icon')->label('Icon'),
-                        Forms\Components\TextInput::make('icon_color')->label('Icon Color'),
-                        Forms\Components\TextInput::make('link')->helperText('Auch Funktion möglich'),
-                        Forms\Components\Select::make('link_target')->label('Link Target')->options([''=>'','_blank'=>'New Tab']),
-                        Forms\Components\TextInput::make('section')->numeric(),
-                        Forms\Components\TextInput::make('select_options')->label('Dropdown Values'),
-                    ])->columns(4)->collapsible(),
+                            ])
+                            ->afterStateUpdated(function (callable $set, $state, callable $get) {
+                                if ($get('type') !== 'relation') {
+                                    $set('relation_table', null);
+                                    $set('relation_show_field', null);
+                                }
+                            }),
+                        Forms\Components\Select::make('select_options')
+                            ->options(function () {
+                                return DB::table('filament_configs')
+                                    ->select('resource', 'field')
+                                    ->where('type', 'option')
+                                    ->distinct()
+                                    ->get()
+                                    ->mapWithKeys(function ($item) {
+                                        $value = $item->resource . '.' . $item->field;     // gespeicherter Wert
+                                        $label = ucfirst($item->resource) . ' | ' . ucfirst($item->field); // Anzeige
+                                        return [$value => $label];
+                                    })
+                                    ->toArray();
+                            })
+                            ->searchable()
+                            ->label('Dropdown Values'),
+                        Forms\Components\Select::make('relation_table')
+                            ->label('Relation Table')
+                            ->reactive()
+                            ->options(function (callable $get) {
+                                $exclude = $get('table');
 
+                                    return collect(File::files(app_path('Filament/Resources')))
+                                    ->filter(fn ($file) => $file->getExtension() === 'php')
+                                    ->map(fn ($file) => 'App\\Filament\\Resources\\' . $file->getFilenameWithoutExtension())
+                                    ->filter(fn ($class) => class_exists($class) && str_ends_with(class_basename($class), 'Resource'))
+                                    ->mapWithKeys(function ($class) {
+                                        $basename = class_basename($class);           // z.B. "TestResource"
+                                        $base = Str::replaceLast('Resource', '', $basename); // "Test"
+                                        $key = Str::of($base)->lower()->singular()->toString(); // "test"
+                                        $label = Str::headline($base);                 // "Test"
+                                        return [$key => $label];
+                                    })
+                                    ->reject(fn ($value, $key) => $key === $exclude)
+                                    ->toArray();
+                            })
+                        ->disabled(fn (callable $get) => $get('type') !== 'relation')
+                        ->searchable(),
+                        Forms\Components\Select::make('relation_show_field')
+                            ->label('Relation Field')
+                            ->disabled(fn (callable $get) => $get('type') !== 'relation')
+                            ->options(function (callable $get) {
+                                $tableKey = $get('relation_table');
+
+                                if (! $tableKey) {
+                                    return [];
+                                }
+
+                                // Beispiel: aus "user" wird "users" (plural), wenn nötig
+                                $tableName = \Illuminate\Support\Str::plural($tableKey);
+
+                                // Spalten der Tabelle holen
+                                try {
+                                    $columns = DB::getSchemaBuilder()->getColumnListing($tableName);
+                                } catch (\Exception $e) {
+                                    $columns = [];
+                                }
+
+                                // Spalten in Dropdown-Format bringen
+                                return collect($columns)
+                                    ->mapWithKeys(fn ($col) => [$col => ucfirst(str_replace('_', ' ', $col))])
+                                    ->toArray();
+                            })
+                            ->searchable(),
+
+                    ])->columns(4)->collapsible(),
                     Forms\Components\Section::make('Advanced Settings')
                     ->schema([
                         Forms\Components\Select::make('color')->options([
@@ -110,15 +190,15 @@ class TableFieldsResource extends Resource
                                 'warning' => 'Warming',
                                 'danger' => 'Danger',
                             ]),
-                        Forms\Components\TextInput::make('relation_table')->label('Relation Table'),
-                        Forms\Components\TextInput::make('relation_show_field')->label('Relation Field'),
-                        Forms\Components\Toggle::make('sortable'),
-                        Forms\Components\Toggle::make('searchable'),
-                        Forms\Components\Toggle::make('disabled'),
-                        Forms\Components\Toggle::make('is_toggable'),
+
+                        Forms\Components\TextInput::make('bgcolor')->label('Background Color'),
+                        Forms\Components\TextInput::make('icon')->label('Icon'),
+                        Forms\Components\TextInput::make('icon_color')->label('Icon Color'),
+                        Forms\Components\TextInput::make('link'),
+                        Forms\Components\Select::make('link_target')->label('Link Target')->options(['_blank'=>'New Tab']),
                         Forms\Components\Textarea::make('format')->rows(5)->placeholder("z.B: return fn (string \state) => \App\Enums\CustomerStatusEnum::tryFrom(\$state)?->label() ?? \$state;")->columnSpanFull(),
                         Forms\Components\Textarea::make('extra_attributes')->rows(5)->placeholder("z.B: return fn (\$state) => ['style' => 'max-inline-size: 200px;];")->columnSpanFull(),
-                    ])->columns(3)->collapsible()
+                    ])->columns(4)->collapsible()
             ])->columnSpan('full')
         ]);
     }
@@ -179,7 +259,6 @@ class TableFieldsResource extends Resource
                         return $query->where('table', $state['value']);
                     }),
             ])
-
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('duplicate')
