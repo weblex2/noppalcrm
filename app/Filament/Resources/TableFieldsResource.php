@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Filament\Forms\Components\ColorPicker;
 
 class TableFieldsResource extends Resource
 {
@@ -191,7 +192,7 @@ class TableFieldsResource extends Resource
                                 'danger' => 'Danger',
                             ]),
 
-                        Forms\Components\TextInput::make('bgcolor')->label('Background Color'),
+                        Forms\Components\ColorPicker::make('bgcolor')->label('Background Color'),
                         Forms\Components\TextInput::make('icon')->label('Icon'),
                         Forms\Components\TextInput::make('icon_color')->label('Icon Color'),
                         Forms\Components\TextInput::make('link'),
@@ -230,6 +231,7 @@ class TableFieldsResource extends Resource
                 Tables\Columns\IconColumn::make('required')
                     ->boolean()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('bgcolor')
             ])
             ->filters([
 
