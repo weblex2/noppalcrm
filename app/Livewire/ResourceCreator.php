@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
+use Filament\Notifications\Notification;
 
 
 
@@ -96,6 +97,12 @@ class ResourceCreator extends Component implements HasForms
                 'updated_at' => now(),
             ]);
             $this->navigationGroups[] = $navigationGroup;
+            Notification::make()
+                ->title("Neue Navigation Group")
+                ->success()
+                ->body("Die neue Navigation Group wurde erfolgreich erstellt.")
+                ->send();
+
             Log::info('ResourceCreator: Neue Navigation Group hinzugefügt', [
                 'navigationGroup' => $navigationGroup,
             ]);
@@ -114,11 +121,27 @@ class ResourceCreator extends Component implements HasForms
                 $this->removeMigrationFile($resourceName);
                 $this->addTraitToModel($resourceName);
                 session()->flash('success', "✅ Ressource erfolgreich erstellt:\n<pre>$output</pre>");
+                Notification::make()
+                ->title("Neue Resource")
+                ->success()
+                ->body("Die neue Resource wurde erfolgreich erstellt.")
+                ->send();
                 $this->formState = [];
                 Log::info('ResourceCreator: Ressource erstellt', [
                     'resourceName' => $resourceName,
                     'output' => $output,
                 ]);
+
+                $status = Artisan::call('shield:generate --all --panel=admin');
+                if ($status === 0){
+                    session()->flash('success', "✅ Policies erfolgreich erstellt:\n<pre>$output</pre>");
+                    Notification::make()
+                        ->title("Policy Refresh")
+                        ->success()
+                        ->body("Die Policies wurden erfolgreich refreshed.")
+                        ->send();
+                }
+
             } else {
                 session()->flash('error', "❌ Fehler beim Erstellen der Ressource:\n<pre>$output</pre>");
                 Log::error('ResourceCreator: Fehler beim Erstellen der Ressource', [
