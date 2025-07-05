@@ -113,7 +113,7 @@ class ResourceCreator extends Component implements HasForms
                 '--model' => true,
                 '--migration' => true,
                 '--generate' => true,
-                '--force'
+                '--force' => true,
             ]);
 
             $output = Artisan::output();
