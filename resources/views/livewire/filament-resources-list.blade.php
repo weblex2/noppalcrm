@@ -18,7 +18,7 @@
                 size="sm"
                 icon="heroicon-o-archive-box-x-mark"
             >
-                Nuke (no way back, be careful!)
+                Nuke
             </x-filament::button>
 
             <x-filament::button
