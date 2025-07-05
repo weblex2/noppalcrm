@@ -103,7 +103,7 @@ class RelationManagerCreator extends Component implements HasForms
         $config['source'] = Str::studly(str_replace('\\', DIRECTORY_SEPARATOR, $resourceClass));
         $config['target'] = Str::studly(Str::plural($relationName));
         $config['method'] = 'HasMany';
-        $config['field'] = 'id';
+        $config['field']  = $recordTitle;
         $config['relation_name'] = strtolower(Str::plural($relationName));
 
         // Controller-Methode aufrufen
