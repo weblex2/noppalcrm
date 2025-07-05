@@ -39,11 +39,18 @@ class FilamentAddFieldController extends Controller
                 'field' => $field['name'],
                 'type' => $type,
             ];
-            TableFields::create($newfield);
-            $newfield['form']=1;
-            TableFields::create($newfield);
-            // Delete the migration file
-            unlink($filename);
+            try{
+                TableFields::create($newfield);
+                $newfield['form']=1;
+                TableFields::create($newfield);
+            } catch (\Exception $e){
+                $result['output'] .="<br>Felder gibt es schon- werden nicht doppelt angelegt.";
+                $result['output'] .="<br>".$e->getMessage();
+            }
+            finally{
+                // Delete the migration file
+                unlink($filename);
+            }
 
         }
         return $result;

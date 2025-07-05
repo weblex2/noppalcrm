@@ -92,8 +92,9 @@ class RelationManagerCreator extends Component implements HasForms
         $relationManagerPath = $relationManagerDir . DIRECTORY_SEPARATOR . $relationManagerClass . '.php';
 
         if (file_exists($relationManagerPath)) {
-            session()->flash('error', "RelationManager {$relationManagerClass} existiert bereits.");
-            return;
+            unlink($relationManagerPath);
+            session()->flash('error', "RelationManager {$relationManagerClass} existiert bereits. Wurde gelöschz und neu erstellt");
+            #return;
         }
         // Call the Artisan Command
         $res = Artisan::call('make:custom-filament-relation-manager '.$resourcePath.' '. $relationName.' '.$recordTitle);
