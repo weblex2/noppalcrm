@@ -16,6 +16,9 @@ class FilamentController extends Controller
         $relationType = $config['method'];
         $relationName = $config['relation_name'];
 
+        if (!$this->traitExists(Str::singular($config['source']))){
+            $this->generateTrait(Str::singular($config['source']));
+        }
         $relationsAlreadyExists =  $this->modelHasRelation($sourceClass, $relationName, $relationType, $targetClass);
         if (!$relationsAlreadyExists){
             return $this->createRelation($config, $targetClass);
@@ -44,19 +47,41 @@ class FilamentController extends Controller
         return true;
     }
 
-   /*  function modelForTable(string $table): ?string
-    {
-        foreach (get_declared_classes() as $class) {
-            if (is_subclass_of($class, \Illuminate\Database\Eloquent\Model::class)) {
-                $model = new $class;
-                if ($model->getTable() === $table) {
-                    return $class;
-                }
-            }
+    public function traitExists($baseName){
+        $traitName = "{$baseName}Relations";
+        $targetPath = app_path("Traits/{$traitName}.php");
+        return file_exists($targetPath);
+    }
+    protected function generateTrait($baseName){
+        $traitName = "{$baseName}Relations";
+        $stubPath = base_path('app/Filament/stubs/filament/relations/traitContent.stub');
+        $targetPath = app_path("Traits/{$traitName}.php");
+
+        // Stub lesen
+        if (!File::exists($stubPath)) {
+            throw new \Exception("Stub-Datei nicht gefunden: {$stubPath}");
         }
 
-        return null;
-    } */
+        $stubContent = File::get($stubPath);
+
+        // Platzhalter ersetzen
+        $traitContent = str_replace('{{Model}}', $baseName, $stubContent);
+
+        // Zielverzeichnis anlegen, falls nötig
+        $targetDir = dirname($targetPath);
+        if (!File::exists($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+        }
+
+        // Trait-Datei schreiben
+        if (!file_exists($targetPath)){
+            File::put($targetPath, $traitContent);
+            return true;
+        }
+        return false;
+    }
+
+
 
     function modelHasRelation(string $modelClass, string $methodName, string $expectedType, string $targetModel): bool
     {
