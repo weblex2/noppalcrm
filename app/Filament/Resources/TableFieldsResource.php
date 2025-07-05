@@ -69,7 +69,6 @@ class TableFieldsResource extends Resource
                         Forms\Components\Toggle::make('disabled')->columnSpan(2),
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
-                            //->options(self::getTableOptions())
                             ->options(function () {
                                 return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
                             })
@@ -93,7 +92,7 @@ class TableFieldsResource extends Resource
                         Forms\Components\TextInput::make('order')->numeric(),
 
 
-                        Forms\Components\TextInput::make('section')->numeric(),
+                        Forms\Components\TextInput::make('section')->numeric()->default(1),
 
                     ])->columns(4)->collapsible(),
                     Forms\Components\Section::make('Field Type')
@@ -305,7 +304,7 @@ class TableFieldsResource extends Resource
         ];
     }
 
-    public static function getTableOptions(): array
+    /* public static function getTableOptions(): array
     {
         $resources = Filament::getResources();
 
@@ -345,11 +344,86 @@ class TableFieldsResource extends Resource
         }
         asort($tables);
         return $tables;
+    } */
+
+    public static function getTableOptions(): array
+    {
+        $resources = Filament::getResources();
+        $tables = [];
+
+        foreach ($resources as $resourceClass) {
+            if (!method_exists($resourceClass, 'getModel')) {
+                continue;
+            }
+
+            $modelClass = $resourceClass::getModel();
+
+            if (!class_exists($modelClass)) {
+                continue;
+            }
+
+            $model = new $modelClass();
+            $table = $model->getTable();
+            $label = $resourceClass::getPluralLabel() ?: Str::plural(class_basename($modelClass));
+
+            $tables[$table] = $label;
+
+            // ➕ RelationManagers einbeziehen
+            if (method_exists($resourceClass, 'getRelations')) {
+                foreach ($resourceClass::getRelations() as $relationManagerClass) {
+                    if (!class_exists($relationManagerClass)) {
+                        continue;
+                    }
+
+                    try {
+                        $reflection = new \ReflectionClass($relationManagerClass);
+                        $property = $reflection->getProperty('relationship');
+                        $property->setAccessible(true);
+                        $relationName = $property->getValue();
+
+                        if (!method_exists($modelClass, $relationName)) {
+                            continue;
+                        }
+
+                        $relation = (new $modelClass)->{$relationName}();
+
+                        if (!$relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                            continue;
+                        }
+
+                        $relatedModel = $relation->getRelated();
+                        $relatedTable = $relatedModel->getTable();
+                        $relatedLabel = Str::plural(class_basename($relatedModel));
+                        $key = $table . '::' . $relationName; // z. B. 'contacts::customer_contacts'
+                        $tables[$key] = $label . ' → ' . $relatedLabel;
+                    } catch (\Throwable $e) {
+                        \Log::warning("RelationManager $relationManagerClass konnte nicht gelesen werden: {$e->getMessage()}");
+                        continue;
+                    }
+                }
+
+            }
+        }
+
+        asort($tables);
+        return $tables;
     }
 
-    public static function getFieldOptions(?string $table): array
+
+    public static function getFieldOptions(?string $tableKey): array
     {
-        if (! $table || ! Schema::hasTable($table)) {
+        if (!$tableKey) {
+            return [];
+        }
+
+        // Prüfen, ob es sich um einen RelationManager-Eintrag handelt
+        if (str_contains($tableKey, '::')) {
+            [$table, $relationName] = explode('::', $tableKey, 2);
+        } else {
+            $table = $tableKey;
+        }
+
+        if (!Schema::hasTable($table)) {
             return [];
         }
 
@@ -357,6 +431,7 @@ class TableFieldsResource extends Resource
             ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
             ->toArray();
     }
+
 
     public static function mutateFormDataBeforeSave(array $data): array
     {

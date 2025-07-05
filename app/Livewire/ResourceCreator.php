@@ -117,8 +117,9 @@ class ResourceCreator extends Component implements HasForms
 
             $output = Artisan::output();
 
+
+
             if ($status === 0) {
-                $this->removeMigrationFile($resourceName);
                 $this->addTraitToModel($resourceName);
                 session()->flash('success', "✅ Ressource erfolgreich erstellt:\n<pre>$output</pre>");
                 Notification::make()
@@ -127,7 +128,7 @@ class ResourceCreator extends Component implements HasForms
                 ->body("Die neue Resource wurde erfolgreich erstellt.")
                 ->send();
                 $this->formState = [];
-                Log::info('ResourceCreator: Ressource erstellt', [
+                Log::channel('crm')->info('ResourceCreator: Ressource erstellt', [
                     'resourceName' => $resourceName,
                     'output' => $output,
                 ]);
@@ -154,7 +155,11 @@ class ResourceCreator extends Component implements HasForms
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
+        } finally {
+            // We don't want to keep the migration file
+            $this->removeMigrationFile($resourceName);
         }
+
     }
 
     public function render()

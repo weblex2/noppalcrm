@@ -44,7 +44,7 @@ class FilamentController extends Controller
         return true;
     }
 
-    function modelForTable(string $table): ?string
+   /*  function modelForTable(string $table): ?string
     {
         foreach (get_declared_classes() as $class) {
             if (is_subclass_of($class, \Illuminate\Database\Eloquent\Model::class)) {
@@ -56,9 +56,9 @@ class FilamentController extends Controller
         }
 
         return null;
-    }
+    } */
 
-    function modelHasRelation(string $modelClass, string $methodName, string $expectedType = null, string $targetModel = null): bool
+    function modelHasRelation(string $modelClass, string $methodName, string $expectedType, string $targetModel): bool
     {
         if (!method_exists($modelClass, $methodName)) {
             return false;
@@ -76,7 +76,10 @@ class FilamentController extends Controller
                 return false;
             }
 
-            if ("\\".get_class($relation->getRelated()) !== $targetModel) {
+            /* if ("\\".get_class($relation->getRelated()) !== $targetModel) {
+                return false;
+            } */
+            if (strcasecmp(get_class($relation->getRelated()), ltrim($targetModel, '\\')) !== 0) {
                 return false;
             }
 
