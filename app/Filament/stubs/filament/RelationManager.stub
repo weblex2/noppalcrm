@@ -9,6 +9,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Http\Controllers\FilamentFieldsController;
 
 class {{ managerClass }} extends RelationManager
 {
@@ -16,21 +17,20 @@ class {{ managerClass }} extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form
-            ->schema([
-                Forms\Components\TextInput::make('{{ recordTitleAttribute }}')
-                    ->required()
-                    ->maxLength(255),
-            ]);
+        $fc = new FilamentFieldsController('{{table}}',1);
+        $schema = $fc->getSchema() ?? [];
+        return $form->schema($schema);
     }
 
     public function table(Table $table): Table
     {
+        $fc = new FilamentFieldsController('{{table}}',0);
+        $table_fields = $fc->getTableFields() ?? [];
         return $table
             ->recordTitleAttribute('{{ recordTitleAttribute }}')
-            ->columns([
-                Tables\Columns\TextColumn::make('{{ recordTitleAttribute }}'),
-            ])
+            ->columns(
+                $table_fields,
+            )
             ->filters([
 {{ tableFilters }}
             ])
