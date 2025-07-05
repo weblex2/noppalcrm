@@ -12,15 +12,12 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\Select;
-use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-
     protected static ?string $navigationGroup = 'User Management';
 
     public static function form(Form $form): Form
@@ -29,22 +26,17 @@ class UserResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(191),
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
-                    ->maxLength(191),
+                    ->maxLength(255),
                 Forms\Components\DateTimePicker::make('email_verified_at'),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required()
-                    ->maxLength(191),
-                Select::make('roles')
-                    ->label('Rollen')
-                    ->multiple()
-                    ->options(Role::all()->pluck('name', 'id'))
-                    ->relationship('roles', 'name'),
-                    ]);
+                    ->maxLength(255),
+            ]);
     }
 
     public static function table(Table $table): Table
