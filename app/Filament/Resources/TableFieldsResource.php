@@ -147,7 +147,7 @@ class TableFieldsResource extends Resource
                                         $base = Str::replaceLast('Resource', '', $basename); // "Test"
                                         \Log::channel('crm')->info("base:".$base);
 
-                                        $key = Str::of($base)->plural()->snake()->lower()->toString(); // "test"
+                                        $key = Str::of($base)->singular()->snake()->lower()->toString(); // "test"
                                         \Log::channel('crm')->info("key".$base);
                                         $label = Str::headline($base);                 // "Test"
                                         return [$key => $label];
