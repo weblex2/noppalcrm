@@ -47,6 +47,11 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
             ])
+            ->brandName(
+                \Illuminate\Support\Facades\Schema::hasTable('general_settings')
+                    ? \App\Models\GeneralSetting::where('field', 'site_name')->value('value') ?? 'CRM'
+                    : 'CRM'
+            )
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
