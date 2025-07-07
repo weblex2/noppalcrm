@@ -82,17 +82,29 @@ class FilamentAddFieldController extends Controller
             $line .= ", {$field['length']}";
         }
 
-        $line .= ");";
+        $line .= ")";
+
+        if ($field['isNullable']){
+            $line .="->nullable()";
+        }
+
+        if ($field['defaultValue']){
+            $line .="->default(".$field['defaultValue'].")";
+        }
+
+        $line .= "->before('created_at');";
 
         return "            {$line}\n";
     }
 
-    private static function execMigration($path){
-        $command  = "migrate";
+    private static function execMigration($filename){
         $status = "";
         try {
-            Artisan::call($command);
-            $status = "Success";
+            $path =  str_replace(base_path() . DIRECTORY_SEPARATOR, '', $filename);
+            Artisan::call('migrate', [
+            '--path' =>  $path,
+            ]);
+            $status = 'Success';
             $output = Artisan::output();
         } catch (\Exception $e) {
             $status = "Fail";
