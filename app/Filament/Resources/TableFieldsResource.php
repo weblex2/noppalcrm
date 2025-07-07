@@ -235,6 +235,8 @@ class TableFieldsResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('bgcolor')
             ])
+            ->persistFiltersInSession()
+
             ->filters([
 
                 TernaryFilter::make('form')

@@ -11,7 +11,13 @@ use App\Http\Controllers\FilamentController;
 
 class EditTableFields extends EditRecord
 {
+    public array $tableFilters = [];
+    public string $tableSearch = '';
+    public ?string $tableSortColumn = null;
+    public ?string $tableSortDirection = null;
+    public int $tablePage = 1;
     protected static string $resource = TableFieldsResource::class;
+
 
     protected function getHeaderActions(): array
     {
@@ -37,16 +43,10 @@ class EditTableFields extends EditRecord
         return $data;
     }
 
-     protected function afterSave(): void
-    {
-        /* Notification::make()
-            ->title('Gespeichert!')
-            ->success()
-            ->send(); */
 
-        // Redirect mit Filter aus URL
-        $this->redirect(
-            route('filament.admin.resources.table-fields.index', request()->query())
-        );
+
+    protected function getRedirectUrl(): string
+    {
+        return TableFieldsResource::getUrl('index', []);
     }
 }
