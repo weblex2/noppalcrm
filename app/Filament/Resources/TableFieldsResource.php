@@ -421,7 +421,7 @@ class TableFieldsResource extends Resource
 
         // Prüfen, ob es sich um einen RelationManager-Eintrag handelt
         if (str_contains($tableKey, '::')) {
-            [$table, $relationName] = explode('::', $tableKey, 2);
+            [$relationName, $table] = explode('::', $tableKey, 2);
         } else {
             $table = $tableKey;
         }
