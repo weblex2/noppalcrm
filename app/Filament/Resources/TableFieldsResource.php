@@ -145,8 +145,10 @@ class TableFieldsResource extends Resource
                                     ->mapWithKeys(function ($class) {
                                         $basename = class_basename($class);           // z.B. "TestResource"
                                         $base = Str::replaceLast('Resource', '', $basename); // "Test"
-                                        \Log::channel('crm')->info($base);
-                                        $key = Str::snake(Str::of($base)->lower()->plural()->toString()); // "test"
+                                        \Log::channel('crm')->info("base:".$base);
+
+                                        $key = Str::of($base)->plural()->snake()->lower()->toString(); // "test"
+                                        \Log::channel('crm')->info("key".$base);
                                         $label = Str::headline($base);                 // "Test"
                                         return [$key => $label];
                                     })
