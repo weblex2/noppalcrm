@@ -6,6 +6,7 @@ use App\Models\GeneralSetting;
 use Filament\Pages\Page;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Pages\Actions\Action;
 use Illuminate\Support\Facades\Cache;
 use Filament\Notifications\Notification;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -35,14 +36,9 @@ class Settings extends Page
     {
         $settings = GeneralSetting::all()->pluck('value', 'field')->toArray();
 
-        $this->settings = [
-            'site_name' => $settings['site_name'] ?? config('app.name'),
-            'email_notifications' => $settings['email_notifications'] ?? true,
-            'imap_server' => $settings['imap_server'] ?? '',
-            'imap_port' => $settings['imap_port'] ?? 995,
-            'imap_encryption' => $settings['imap_encryption'] ?? 'ssl',
-            // Weitere Felder bei Bedarf
-        ];
+        foreach ($settings as $key => $value) {
+            $this->settings[$key] = $value;
+        }
 
         $this->form->fill($this->settings);
     }
@@ -127,5 +123,27 @@ class Settings extends Page
             ->send();
         // Wenn du die Benachrichtigung in der Datenbank speichern willst:
         //auth()->user()->notify(new GeneralNotification('Settings saved successfully!'));
+    }
+
+    public function getHeaderActions(): array
+    {
+        return [
+            Action::make('save')
+                ->label('Save Settings')
+                ->action('submit')
+                ->color('primary')
+                ->icon('heroicon-o-check')
+                ->requiresConfirmation(true), // optional
+            Action::make('addField')
+                        ->label('Feld hinzufügen')
+                        ->icon('heroicon-o-plus-circle')
+                        ->modalContent(function ($record) {
+                            return view('filament.actions.add-db-field-modal', [
+                                'tableName' => 'settings',
+                            ]);
+                        })
+                        ->modalSubmitAction(false)
+                        ->modalCancelAction(false),
+        ];
     }
 }
