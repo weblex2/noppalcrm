@@ -27,3 +27,8 @@ app/Filament/Resources/TestResource/Pages/CreateTest.php
 app/Filament/Resources/TestResource/Pages/EditTest.php
 app/Filament/Resources/TestResource/Pages/ListTests.php
 app/Models/Test.php
+/app/Filament/
+!/app/Filament/Pages/LogViewer.php
+!/app/Filament/Pages/Settings.php
+!/app/Filament/Pages/Setup.php
+!/app/Filament/stubs
