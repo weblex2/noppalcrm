@@ -21,7 +21,7 @@ class Settings extends Page
 
     protected static ?string $navigationGroup = 'Configuration';
 
-    public $settings = []; 
+    public $settings = [];
 
 
     public function form(Form $form): Form
@@ -72,6 +72,23 @@ class Settings extends Page
                         ->numeric()
                         ->default(995),  // Beispiel Port
                     Forms\Components\TextInput::make('imap_encryption')
+                        ->label('Encryption')
+                        ->default('ssl'),
+                ])
+                ->columns(3)
+                ->collapsible(),  // Kollapsbar
+
+            // E-Mail Einstellungen
+            Forms\Components\Section::make('SMTP')
+                ->schema([
+
+                    Forms\Components\TextInput::make('smtp_server')
+                        ->label('Server'),
+                    Forms\Components\TextInput::make('smtp_port')
+                        ->label('Port')
+                        ->numeric()
+                        ->default(995),  // Beispiel Port
+                    Forms\Components\TextInput::make('smtp_encryption')
                         ->label('Encryption')
                         ->default('ssl'),
                 ])
