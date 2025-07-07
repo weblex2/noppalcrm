@@ -1,0 +1,4 @@
+public function {{functionName}}(): BelongsTo
+    {
+        return $this->belongsTo({{targetClass}}::class, '{{field}}');
+    }

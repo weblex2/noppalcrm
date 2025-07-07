@@ -1,0 +1,4 @@
+public function {{functionName}}(): HasMany
+    {
+        return $this->hasMany({{targetClass}}::class, '{{field}}');
+    }
