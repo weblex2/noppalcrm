@@ -267,7 +267,11 @@ class TableFieldsResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                 Tables\Actions\EditAction::make()
+                    ->modalHeading('Feld bearbeiten')
+                    ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
+                    //->slideOver()
+                    ,
                 Tables\Actions\Action::make('duplicate')
                     ->label('Duplizieren')
                     ->icon('heroicon-o-document-duplicate')

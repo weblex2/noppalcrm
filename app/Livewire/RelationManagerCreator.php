@@ -65,15 +65,43 @@ class RelationManagerCreator extends Component implements HasForms
                     ->options($this->resources)
                     ->required()
                     ->searchable(),
-                    //->reactive(),
                 Select::make('relation_name')
                     ->label('Relation')
                     ->options($this->resources)
                     ->required()
+                    ->reactive()
                     ->helperText('Name der Eloquent-Relation, z.B. "comments"'),
-                TextInput::make('record_title_attribute')
+                Select::make('record_title_attribute')
                     ->label('Record Title Attribute')
-                    ->helperText('Optional: Attributname, z.B. "title" für Listeneinträge'),
+                    ->helperText('Optional: Attributname, z.B. "title" für Listeneinträge')
+                    ->options(function (callable $get) {
+                        $resourceKey = $get('relation_name'); // z. B. "user" oder "company-profile"
+                        $resources = $this->resources;
+
+                        if (!isset($resources[$resourceKey])) {
+                            return [];
+                        }
+
+                        $className = 'App\\Filament\\Resources\\' . $resources[$resourceKey] . 'Resource';
+
+                        if (!class_exists($className) || !method_exists($className, 'getModel')) {
+                            return [];
+                        }
+
+                        $modelClass = $className::getModel();
+
+                        if (!class_exists($modelClass)) {
+                            return [];
+                        }
+
+                        try {
+                            $table = (new $modelClass)->getTable();
+                            $columns = \Schema::getColumnListing($table);
+                            return array_combine($columns, $columns);
+                        } catch (\Throwable $e) {
+                            return [];
+                        }
+                    }),
             ])
             ->statePath('formState');
     }

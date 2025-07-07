@@ -5,21 +5,21 @@
             {{ session('message') }}
         </div>
     @endif --}}
-    @foreach ($resources as $resource)
+    @foreach ($relationManagers as $resource)
         <div class="filament-card p-4 rounded-lg shadow border border-gray-200">
             <h2 class="text-lg font-bold mb-2">{{ class_basename($resource['class']) }}</h2>
-            <p class="text-sm text-gray-600 mb-4">Model: {{ $resource['model'] }}</p>
-            <p class="text-sm text-gray-600 mb-4">Model: {{ class_basename($resource['class']) }}</p>
+            <p class="text-sm text-gray-600 mb-4">Resource: {{ $resource['resource'] }}</p>
+            <p class="text-sm text-gray-600 mb-4">Name: {{ class_basename($resource['name']) }}</p>
 
 
 
             <x-filament::button
                 color="danger"
-                wire:click="nukeResource('{{ class_basename($resource['class']) }}')"
+                wire:click="deleteRelationManager('{{ class_basename($resource['class']) }}','{{$resource['resource']}}')"
                 size="sm"
                 icon="heroicon-o-archive-box-x-mark"
             >
-                Nuke
+                Delete
             </x-filament::button>
 
             <x-filament::button
