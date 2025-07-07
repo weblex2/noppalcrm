@@ -236,7 +236,8 @@ class TableFieldsResource extends Resource
                 Tables\Columns\TextColumn::make('bgcolor')
             ])
             ->persistFiltersInSession()
-
+            ->recordAction(Tables\Actions\EditAction::class)
+            ->recordUrl(null)
             ->filters([
 
                 TernaryFilter::make('form')
