@@ -66,7 +66,7 @@ class FilamentRelationManagerList extends Component
     public function deleteRelationManager($className,$relationName)
     {
         $resource = Str::before(class_basename($relationName), 'Resource');
-        $relation = Str::of($className)->before('RelationManager')->lower()->toString();
+        $relation = Str::of($className)->before('RelationManager')->toString();
 
         \Log::channel('crm')->info("Resource:". $resource);
         \Log::channel('crm')->info("Relation:". $relation);
