@@ -8,5 +8,5 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateResourceConfig extends CreateRecord
 {
-    protected static string $resource = ResourceConfigResource::class;
+    protected static string $resource = ResourceConfigResource::class; 
 }

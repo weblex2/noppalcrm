@@ -16,4 +16,9 @@ class EditResourceConfig extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    public function getRedirectUrl(): string
+    {
+        return static::getResource()::getUrl(); // geht zurück zur Index-Seite
+    }
 }

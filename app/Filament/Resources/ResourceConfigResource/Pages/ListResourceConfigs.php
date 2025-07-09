@@ -11,7 +11,7 @@ class ListResourceConfigs extends ListRecords
     protected static string $resource = ResourceConfigResource::class;
 
     protected function getHeaderActions(): array
-    {
+    { 
         return [
             Actions\CreateAction::make(),
         ];
