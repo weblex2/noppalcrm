@@ -68,10 +68,13 @@ class FilamentRelationManagerList extends Component
         $resource = Str::before(class_basename($relationName), 'Resource');
         $relation = Str::of($className)->before('RelationManager')->lower()->toString();
 
+        \Log::channel('crm')->info("Resource:". $resource);
+        \Log::channel('crm')->info("Relation:". $relation);
         $status = Artisan::call('delete:relation-manager', [
             'resource' => $resource,
             'relation' => $relation,
         ]);
+
 
         $output = $this->commandOutput = Artisan::output();
 
