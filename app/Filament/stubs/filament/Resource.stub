@@ -38,7 +38,7 @@ class {{ resourceClass }} extends Resource
     public static function getNavigationIcon(): ?string
     {
         $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
-        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
     }
 
     public static function form(Form $form): Form
