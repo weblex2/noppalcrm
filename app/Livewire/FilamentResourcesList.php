@@ -16,6 +16,8 @@ class FilamentResourcesList extends Component
      // Array der Resources, die ausgeschlossen werden sollen (Klassennamen)
     protected array $excludedResources = [
         'App\Filament\Resources\TableFieldsResource',
+        'App\Filament\Resources\ResourceConfigResource',
+        'App\Filament\Resources\FilamentConfigResource',
         // ... weitere ausschließen
     ];
 
