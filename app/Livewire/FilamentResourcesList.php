@@ -6,6 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use Filament\Notifications\Notification;
+use App\Models\ResourceConfig;
 
 class FilamentResourcesList extends Component
 {
@@ -93,10 +94,16 @@ class FilamentResourcesList extends Component
     }
 
     public function rebuildResource($resourceName){
-        session()->flash('error', "✅ Recreate Resource $resourceName");
         $path = app_path('Filament/Resources/').$resourceName.".php";
-        if (file_exists($path)){
-        }
+        $label = Str::of($resourceName)->plural()->before('Resource')->replaceMatches('/([a-z])([A-Z])/', '$1 $2');
+        \DB::table('resource_configs')->insertOrIgnore([
+            'resource' => $resourceName,
+            'navigation_group' => '',
+            'navigation_label' => $label,
+            'navigation_icon' => 'heroicon-o-rectangle-stack',
+            'created_at' => now(),
+            'updated_at' => now(),
+            ]);
 
         $status = Artisan::call('make:custom-filament-resource', [
             'name' => $resourceName,
@@ -104,10 +111,12 @@ class FilamentResourcesList extends Component
             '--force' => true,
         ]);
 
+
+
         Notification::make()
                 ->title("Resource successfully rebuilt")
                 ->success()
-                ->body("Die Resource wurde erfolgreich entfernt.")
+                ->body("Die Resource wurde erfolgreich neu erstellt.")
                 ->send();
 
     }
