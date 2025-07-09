@@ -22,6 +22,13 @@ class {{ resourceClass }} extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';{{ clusterAssignment }}
 
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
+    }
+
     public static function getNavigationGroup(): ?string
     {
         $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
