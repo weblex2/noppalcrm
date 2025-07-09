@@ -21,6 +21,7 @@ use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\ColorPicker;
+use App\Http\Controllers\FilamentController;
 
 class TableFieldsResource extends Resource
 {
@@ -84,6 +85,7 @@ class TableFieldsResource extends Resource
                                 return $context === 'edit' || ! $get('table');
                             })
                             ->options(fn (callable $get) => array_filter(self::getFieldOptions($get('table')), fn($label) => $label !== null && $label !== ''))
+                            ->disabled(fn (callable $get) => ! $get('table'))
                             ->dehydrated(),
 
                         Forms\Components\TextInput::make('label')->required(),
@@ -185,6 +187,7 @@ class TableFieldsResource extends Resource
                             ->searchable(),
 
                     ])->columns(4)->collapsible(),
+
                     Forms\Components\Section::make('Advanced Settings')
                     ->schema([
                         Forms\Components\Select::make('color')->options([
@@ -271,7 +274,19 @@ class TableFieldsResource extends Resource
                     ->modalHeading('Feld bearbeiten')
                     ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
                     //->slideOver()
-                    ,
+                    ->mutateFormDataUsing(function (array $data) {
+                        if ($data['type'] === 'relation') {
+                            $config['source'] = $data['table'];
+                            $config['target'] = $data['relation_table'];
+                            $config['method'] = 'BelongsTo';
+                            $config['field'] = $data['field'];
+                            $config['relation_name'] = $data['relation_table'];
+
+                            app(FilamentController::class)->checkIfRelationExists($config);
+                        }
+
+                        return $data;
+                    }),
                 Tables\Actions\Action::make('duplicate')
                     ->label('Duplizieren')
                     ->icon('heroicon-o-document-duplicate')
@@ -313,48 +328,6 @@ class TableFieldsResource extends Resource
             'edit' => Pages\EditTableFields::route('/{record}/edit'),
         ];
     }
-
-    /* public static function getTableOptions(): array
-    {
-        $resources = Filament::getResources();
-
-        $tables = [];
-
-        foreach ($resources as $resourceClass) {
-            if (method_exists($resourceClass, 'getModel')) {
-                $modelClass = $resourceClass::getModel();
-
-                if (class_exists($modelClass)) {
-                    $model = new $modelClass();
-                    $table = $model->getTable();
-
-                    $label = $resourceClass::getPluralLabel();
-
-                    if (empty($label)) {
-                        $label = class_basename($modelClass);
-                        $label = Str::plural($label);
-                    }
-
-                     if ($label === null) {
-                    // Debug-Ausgabe ins Log oder auf die Konsole
-                    info("DEBUG: Table option label is NULL for table '$table' in resource $resourceClass");
-                    // Für Web-Ausgabe kannst du auch dump() oder dd() verwenden:
-                    dd("DEBUG: Table option label is NULL for table '$table'");
-                    // dd();
-                    $label = $table; // Default setzen
-                }
-
-                    if ($label === null) {
-                        $label = $table."XXX";  // oder ein Default-Label
-                    }
-
-                    $tables[$table] = $label;
-                }
-            }
-        }
-        asort($tables);
-        return $tables;
-    } */
 
     public static function getTableOptions(): array
     {
