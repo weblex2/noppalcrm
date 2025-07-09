@@ -111,7 +111,7 @@ class ResourceConfigResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('resource'),
-                Tables\Columns\IconColumn::make('navigation_group'),
+                Tables\Columns\TextColumn::make('navigation_group'),
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('navigation_icon'),
                 ]
