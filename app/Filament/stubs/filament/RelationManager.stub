@@ -10,9 +10,31 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Http\Controllers\FilamentFieldsController;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+
 
 class {{ managerClass }} extends RelationManager
 {
+
+    public static function getTitle(Model $ownerRecord, string $pageClass): string
+    {
+        $table = Str::of(class_basename($ownerRecord))
+            ->before('RelationManager')
+            ->replaceMatches('/([a-z])([A-Z])/', '$1 $2')
+            ->studly()
+            ->value();
+        $relationName = Str::of(class_basename(static::class))
+            ->before('RelationManager')
+            ->plural()
+            ->lower()
+            ->value();
+        $resourceName = Str::studly($table) . 'Resource::' . $relationName;
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')  ?? $table;
+
+        #return 'Kontaktpersonen von ' . $ownerRecord->name;
+    }
+
     protected static string $relationship = '{{ relationship }}';
 
     public function form(Form $form): Form
