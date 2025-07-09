@@ -17,11 +17,24 @@ class FilamentConfigResource extends Resource
 {
     protected static ?string $model = FilamentConfig::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
+    }
 
-    protected static ?string $navigationGroup = 'Configuration';
+    public static function getNavigationIcon(): ?string{
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
+    }
 
-    protected static ?string $navigationLabel = 'Dopdowns & Navlinks';
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Dopdowns & Navlinks';
+    }
+
 
 
     public static function form(Form $form): Form
