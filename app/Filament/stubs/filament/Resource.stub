@@ -24,7 +24,14 @@ class {{ resourceClass }} extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return \App\Models\Resource::where('resource', '{{ resourceClass }}')->value('navigation_group') ?? null;
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
     }
 
     public static function form(Form $form): Form
@@ -88,7 +95,7 @@ class {{ resourceClass }} extends Resource
         }
         return $relations;
     }
-    
+
     public static function getPages(): array
     {
         return [

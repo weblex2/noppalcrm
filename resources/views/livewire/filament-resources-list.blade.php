@@ -24,7 +24,7 @@
 
             <x-filament::button
                 color="info"
-                wire:click=""
+                wire:click="rebuildResource('{{ class_basename($resource['class']) }}')"
                 size="sm"
                 icon="heroicon-m-arrow-path"  {{-- Icon-Klasse --}}            >
                 Rebuild

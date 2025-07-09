@@ -326,6 +326,13 @@ class MakeCustomFilamentResourceCommand extends Command
             $clusterImport = "use {$potentialCluster};" . PHP_EOL;
         }
 
+        if (!isset($table)){
+            $table = (string) str($model)
+                ->classBasename()
+                ->pluralStudly()
+                ->snake();
+        }
+
         $this->copyStubToApp('Resource', $resourcePath, [
             'clusterAssignment' => $clusterAssignment,
             'clusterImport' => $clusterImport,

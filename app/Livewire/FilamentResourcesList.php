@@ -92,6 +92,26 @@ class FilamentResourcesList extends Component
         $this->mount();
     }
 
+    public function rebuildResource($resourceName){
+        session()->flash('error', "✅ Recreate Resource $resourceName");
+        $path = app_path('Filament/Resources/').$resourceName.".php";
+        if (file_exists($path)){
+        }
+
+        $status = Artisan::call('make:custom-filament-resource', [
+            'name' => $resourceName,
+            '--generate' => true,
+            '--force' => true,
+        ]);
+
+        Notification::make()
+                ->title("Resource successfully rebuilt")
+                ->success()
+                ->body("Die Resource wurde erfolgreich entfernt.")
+                ->send();
+
+    }
+
     public function render()
     {
         return view('livewire.filament-resources-list');
