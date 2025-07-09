@@ -109,7 +109,13 @@ class ResourceConfigResource extends Resource
         $fc = new FilamentFieldsController('resource_configs',0);
         $table_fields = $fc->getTableFields() ?? [];
         return $table
-            ->columns($table_fields)
+            ->columns([
+                Tables\Columns\TextColumn::make('resource'),
+                Tables\Columns\IconColumn::make('navigation_group'),
+                Tables\Columns\TextColumn::make('navigation_label'),
+                Tables\Columns\TextColumn::make('navigation_icon'),
+                ]
+            )
             ->filters([
                 //
             ])
