@@ -26,7 +26,7 @@ class ResourceConfigResource extends Resource
     public static function getNavigationLabel(): string
     {
         $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
-        return \App\Models\ResourceConfig::where('resource', 'ResourceConfigsResource')->value('navigation_label')
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
             ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
     }
 
