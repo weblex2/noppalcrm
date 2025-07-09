@@ -114,7 +114,7 @@ class ResourceConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_group'),
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('navigation_icon'),
-                ]
+                ] 
             )
             ->filters([
                 //
