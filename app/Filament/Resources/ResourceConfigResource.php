@@ -26,18 +26,19 @@ class ResourceConfigResource extends Resource
     public static function getNavigationLabel(): string
     {
         $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
-
         return \App\Models\ResourceConfig::where('resource', 'ResourceConfigsResource')->value('navigation_label')
             ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
     }
 
     public static function getNavigationIcon(): ?string{
-        return \App\Models\ResourceConfig::where('resource', 'ResourceConfigsResource')->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return \App\Models\ResourceConfig::where('resource', 'ResourceConfigsResource')->value('navigation_group') ?? null;
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
     }
 
     public static function form(Form $form): Form
