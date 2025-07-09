@@ -84,7 +84,7 @@ class FilamentRelationManagerList extends Component
 
             return redirect()->route('filament.admin.pages.setup');
         } else {
-            session()->flash('error', "Fehler beim Löschen von {$name}.<br>" . nl2br($output));
+            session()->flash('error', "Fehler beim Löschen von {$relationName}.<br>" . nl2br($output));
         }
 
         $this->mount(); // Liste neu laden
