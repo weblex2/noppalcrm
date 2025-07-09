@@ -110,7 +110,23 @@ class ResourceConfigResource extends Resource
         $table_fields = $fc->getTableFields() ?? [];
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('resource'),
+                Tables\Columns\TextColumn::make('resource')
+                    ->icon(fn ($record) => str_contains($record->resource, '::')
+                        ? 'heroicon-o-arrows-right-left'
+                        : 'heroicon-o-cube')
+                    ->searchable()
+                    ->sortable()
+                    ->formatStateUsing(function ($state) {
+                        if (str_contains($state, '::')) {
+                            return Str::of($state)
+                                ->replace('::', ' → ')
+                                ->afterLast('→ ')
+                                ->ucfirst()
+                                ->prepend(Str::of($state)->before('::') . ' → ');
+                        }
+
+                        return $state;
+                    }),
                 Tables\Columns\TextColumn::make('navigation_group'),
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('navigation_icon'),
@@ -162,11 +178,50 @@ class ResourceConfigResource extends Resource
                 continue;
             }
 
+            // Resource selbst
             $model = new $modelClass();
             $table = Str::singular($model->getTable());
-            $label = $resourceClass::getPluralLabel() ?: Str::singular(class_basename($modelClass));
-            $key = Str::studly($table)."Resource";
+            $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
+            $key = Str::studly($table) . 'Resource';
+
             $tables[$key] = $label;
+
+            // RelationManagers einbeziehen
+            if (method_exists($resourceClass, 'getRelations')) {
+                foreach ($resourceClass::getRelations() as $relationManagerClass) {
+                    if (!class_exists($relationManagerClass)) {
+                        continue;
+                    }
+
+                    try {
+                        $reflection = new \ReflectionClass($relationManagerClass);
+                        $property = $reflection->getProperty('relationship');
+                        $property->setAccessible(true);
+                        $relationName = $property->getValue();
+
+                        if (!method_exists($modelClass, $relationName)) {
+                            continue;
+                        }
+
+                        $relation = (new $modelClass)->{$relationName}();
+                        if (!$relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                            continue;
+                        }
+
+                        $relatedModel = $relation->getRelated();
+                        $relatedTable = Str::singular($relatedModel->getTable());
+                        $relatedLabel = Str::headline(Str::plural(class_basename($relatedModel)));
+
+                        // Key und Label zusammensetzen
+                        $relationKey = Str::studly($table) . 'Resource::' . $relationName;
+                        $relationLabel = $label . ' → ' . $relatedLabel;
+
+                        $tables[$relationKey] = $relationLabel;
+                    } catch (\Throwable $e) {
+                        \Log::channel('crm')->warning("Fehler bei RelationManager $relationManagerClass: " . $e->getMessage());
+                    }
+                }
+            }
         }
 
         asort($tables);
