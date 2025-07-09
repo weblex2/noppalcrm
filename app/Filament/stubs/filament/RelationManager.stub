@@ -48,6 +48,11 @@ class {{ managerClass }} extends RelationManager
     {
         $fc = new FilamentFieldsController('{{table}}',0);
         $table_fields = $fc->getTableFields() ?? [];
+        if (count($table_fields)==0){
+          $parentClass = Str::of(class_basename(self::class))->before('RelationManager')->plural()->snake();
+          $fc = new FilamentFieldsController($parentClass,0);
+          $table_fields = $fc->getTableFields() ?? [];
+        }
         return $table
             ->recordTitleAttribute('{{ recordTitleAttribute }}')
             ->columns(
