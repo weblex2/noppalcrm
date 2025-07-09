@@ -18,6 +18,7 @@ class FilamentResourcesList extends Component
         'App\Filament\Resources\TableFieldsResource',
         'App\Filament\Resources\ResourceConfigResource',
         'App\Filament\Resources\FilamentConfigResource',
+        'App\Filament\Resources\UserResource',
         // ... weitere ausschließen
     ];
 
