@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Facades\Filament;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Http\Controllers\FilamentFieldsController;
@@ -37,7 +38,7 @@ class ResourceConfigResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        $resourceName = class_basename(static::class);
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
     }
 
@@ -52,25 +53,18 @@ class ResourceConfigResource extends Resource
                                 return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
                             })
                             ->required()
-                            ->reactive() // wichtig für Reaktivität
-
-                            /* ->dehydrateStateUsing(function ($state) {
-                                // Optional: Speichere in snake_case
-                                \Log::info('Dehydrate State:', ['state' => $state]);
-                                \Log::info('Dehydrate State:', ['state' => Str::of($state)->snake()]);
-                                #return Str::of($state)->studly();
-                                return Str::of($state)->studly()."Resource";
-                            }) */,
+                            ->reactive() ,
 
             Forms\Components\Select::make('navigation_group')
                 ->label('Navigation Group')
                 ->searchable()
                 ->options(function () {
-                    // Statische Liste der bestehenden Navigation Groups
-                    return [
-                        'Configuration' => 'Configuration',
-                        'Test' => 'Test',
-                    ];
+                    return ['' => '<none>'] + DB::table('resource_configs')
+                        ->whereNotNull('navigation_group')
+                        ->distinct()
+                        ->orderBy('navigation_group')
+                        ->pluck('navigation_group', 'navigation_group')
+                        ->toArray();
                 })
                 ->getSearchResultsUsing(function (string $search) {
                     // Statische Liste laden
