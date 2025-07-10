@@ -32,7 +32,7 @@ class FilamentConfigResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         $resourceName = class_basename(static::class);
-        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Dopdowns & Navlinks';
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Configuration';
     }
 
 
