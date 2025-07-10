@@ -13,7 +13,6 @@ use App\Http\Controllers\FilamentFieldsController;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
-
 class {{ managerClass }} extends RelationManager
 {
 

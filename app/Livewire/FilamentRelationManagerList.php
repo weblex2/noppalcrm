@@ -87,10 +87,54 @@ class FilamentRelationManagerList extends Component
 
             return redirect()->route('filament.admin.pages.setup');
         } else {
-            session()->flash('error', "Fehler beim Löschen von {$relationName}.<br>" . nl2br($output));
+            Notification::make()
+                ->title("Fehler beim Löschen des RelationManagers")
+                ->error()
+                ->body($output)
+                ->send();
         }
 
         $this->mount(); // Liste neu laden
+    }
+
+    public function rebuildRelationManager($className,$relationName){
+        $resource = Str::before(class_basename($relationName), 'Resource');
+        $relation = Str::of($className)->before('RelationManager')->toString();
+        $fullClass = "\\App\\Filament\\Resources\\{$relationName}\\RelationManagers\\{$className}";
+         // Hier lesen wir die statische Property $relationship
+        try {
+            $reflection = new \ReflectionClass($fullClass);
+            $property = $reflection->getProperty('relationship');
+            $property->setAccessible(true);
+            $recordTitle = $property->getValue();
+        } catch (\ReflectionException $e) {
+            \Log::error("Fehler beim Lesen von \$relationship aus $className: " . $e->getMessage());
+            return null;
+        }
+
+
+        $status = Artisan::call('make:custom-filament-relation-manager', [
+            'resource' => $resource,
+            'relationship' => $relation,
+            'recordTitleAttribute' => $recordTitle,
+            '--force' => true,
+        ]);
+        $output = Artisan::output();
+        if ($status === 0) {
+            Notification::make()
+                ->title("RelationManager successfully rebuild")
+                ->success()
+                ->body("Der RelationManager {$resource} -> {$relation} wurde erfolgreich neu erstellt.")
+                ->send();
+
+            return redirect()->route('filament.admin.pages.setup');
+        } else {
+            Notification::make()
+                ->title("Fehler beim Rebuild des RelationManagers")
+                ->error()
+                ->body($output)
+                ->send();
+        }
     }
 
     public function render()
