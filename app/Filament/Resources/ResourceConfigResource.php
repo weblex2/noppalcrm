@@ -48,12 +48,12 @@ class ResourceConfigResource extends Resource
         $schema = $fc->getSchema() ?? [];
         return $form->schema([
             Forms\Components\Select::make('resource')
-                            ->label('Tabelle')
-                            ->options(function () {
-                                return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
-                            })
-                            ->required()
-                            ->reactive() ,
+                ->label('Tabelle')
+                ->options(function () {
+                    return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
+                })
+                ->required()
+                ->reactive() ,
 
             Forms\Components\Select::make('navigation_group')
                 ->label('Navigation Group')
@@ -103,12 +103,14 @@ class ResourceConfigResource extends Resource
         $fc = new FilamentFieldsController('resource_configs',0);
         $table_fields = $fc->getTableFields() ?? [];
         return $table
+            ->defaultSort('resource', 'asc')
             ->columns([
                 Tables\Columns\TextColumn::make('resource')
                     ->icon(fn ($record) => str_contains($record->resource, '::')
                         ? 'heroicon-o-arrows-right-left'
                         : 'heroicon-o-cube')
                     ->searchable()
+
                     ->sortable()
                     ->formatStateUsing(function ($state) {
                         if (str_contains($state, '::')) {
@@ -216,6 +218,26 @@ class ResourceConfigResource extends Resource
                     }
                 }
             }
+        }
+
+        $pageFiles = \File::files(app_path('Filament/Pages'));
+
+        foreach ($pageFiles as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $className = 'App\\Filament\\Pages\\' . $file->getFilenameWithoutExtension();
+
+            if (!class_exists($className)) {
+                continue;
+            }
+
+            $base = class_basename($className);
+            $label = Str::headline($base);
+            $key = 'Page::' . $base;
+
+            $tables[$key] = $label;
         }
 
         asort($tables);
