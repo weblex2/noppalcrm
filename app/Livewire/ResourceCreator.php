@@ -90,23 +90,6 @@ class ResourceCreator extends Component implements HasForms
         $navigationGroup = $data['navigation_group'];
 
         try {
-            \DB::table('resources')->insertOrIgnore([
-                'resource' => $resourceName,
-                'navigation_group' => $navigationGroup,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $this->navigationGroups[] = $navigationGroup;
-           /*  Notification::make()
-                ->title("Neue Navigation Group")
-                ->success()
-                ->body("Die neue Navigation Group wurde erfolgreich erstellt.")
-                ->send(); */
-
-            Log::info('ResourceCreator: Neue Navigation Group hinzugefügt', [
-                'navigationGroup' => $navigationGroup,
-            ]);
-
 
             $status = Artisan::call('make:custom-filament-resource', [
                 'name' => $resourceName,

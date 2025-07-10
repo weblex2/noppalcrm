@@ -31,6 +31,7 @@ class FilamentAddFieldController extends Controller
             }
 
             // Create Field in Table Fields
+            $maxOrder = TableFields::where('table', $field['tablename'])->max('order') ?? 0;
             $newfield = [
                 'form' => 0,
                 'user_id' => 0,
@@ -38,13 +39,14 @@ class FilamentAddFieldController extends Controller
                 'table' => $field['tablename'],
                 'field' => $field['name'],
                 'type' => $type,
+                'order' => $maxOrder+10,
             ];
             try{
                 TableFields::create($newfield);
                 $newfield['form']=1;
                 TableFields::create($newfield);
             } catch (\Exception $e){
-                $result['output'] .="<br>Felder gibt es schon- werden nicht doppelt angelegt.";
+                $result['output'] .="<br>Felder gibt es schon - werden nicht doppelt angelegt.";
                 $result['output'] .="<br>".$e->getMessage();
             }
             finally{
