@@ -106,9 +106,14 @@ class ResourceConfigResource extends Resource
             ->defaultSort('resource', 'asc')
             ->columns([
                 Tables\Columns\TextColumn::make('resource')
-                    ->icon(fn ($record) => str_contains($record->resource, '::')
-                        ? 'heroicon-o-arrows-right-left'
-                        : 'heroicon-o-cube')
+                   ->icon(fn ($record) =>
+                        str_starts_with($record->resource, 'Page::')
+                            ? 'heroicon-o-book-open'
+                            : (str_contains($record->resource, '::')
+                                ? 'heroicon-o-arrows-right-left'
+                                : 'heroicon-o-cube')
+                    )
+                    ->iconColor('primary')
                     ->searchable()
 
                     ->sortable()

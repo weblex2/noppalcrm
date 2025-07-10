@@ -27,11 +27,23 @@ class TableFieldsResource extends Resource
 {
     protected static ?string $model = TableFields::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? 'Fields'; // Fallback auf Standardlabel
+    }
 
-    protected static ?string $navigationGroup = 'Configuration';
+    public static function getNavigationIcon(): ?string{
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
+    }
 
-    protected static ?string $navigationLabel = 'Fields';
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Configuration';
+    }
 
     protected static function getTitle(){
         return "Edit Fields";
