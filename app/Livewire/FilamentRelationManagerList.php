@@ -137,6 +137,10 @@ class FilamentRelationManagerList extends Component
         }
     }
 
+    public function rebuildAllRelationManagers(){
+
+    }
+
     public function render()
     {
         return view('livewire.filament-relation-manager-list');

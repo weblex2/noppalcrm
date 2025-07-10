@@ -1,4 +1,15 @@
 <x-filament::card>
+    <div class="py-4">
+    <x-filament::button
+                color="primary"
+                wire:click="rebuildAllRelationManagers()"
+                size="sm"
+                icon="heroicon-m-arrow-path"
+            >
+                Rebuild all RelationManagers
+    </x-filament::button>
+    </div>
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {{-- @if (session()->has('message'))
         <div class="mt-4 text-green-600 font-semibold">
@@ -23,7 +34,7 @@
             </x-filament::button>
 
             <x-filament::button
-                color="info"
+                color="primary"
                 wire:click="rebuildRelationManager('{{ class_basename($resource['class']) }}','{{$resource['resource']}}')"
                 size="sm"
                 icon="heroicon-m-arrow-path"  {{-- Icon-Klasse --}}            >

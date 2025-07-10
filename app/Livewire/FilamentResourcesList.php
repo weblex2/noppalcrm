@@ -115,13 +115,20 @@ class FilamentResourcesList extends Component
         ]);
 
 
-
         Notification::make()
                 ->title("Resource successfully rebuilt")
                 ->success()
                 ->body("Die Resource wurde erfolgreich neu erstellt.")
                 ->send();
 
+    }
+
+    public function rebuildAllResources() :void{
+         Notification::make()
+                ->title("Not implemented yet.")
+                ->success()
+                ->body("Not implemented yet.")
+                ->send();
     }
 
     public function render()
