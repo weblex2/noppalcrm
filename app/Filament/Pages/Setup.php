@@ -8,10 +8,10 @@ use App\Models\Resource;
 class Setup extends Page
 {
 
-    public static function getNavigationLabel(): string
+    public static function getNavigationLabel(): string 
     {
         $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
-        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label') ?? "Setup"; 
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label') ?? "Setup";
     }
 
     public static function getNavigationGroup(): ?string
