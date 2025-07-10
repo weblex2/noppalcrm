@@ -7,12 +7,25 @@ use App\Models\Resource;
 
 class Setup extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label') ?? "Setup"; 
+    }
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Configuration'; 
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? "Configuration";
     }
+
+    public static function getNavigationIcon(): ?string
+    {
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-document-text';
+    }
+
 
     protected static string $view = 'filament.pages.setup';
 }
