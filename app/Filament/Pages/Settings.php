@@ -16,11 +16,26 @@ class Settings extends Page
     use InteractsWithForms;
 
 
-    protected static ?string $navigationIcon = 'heroicon-o-cog';
+    
     protected static string $view = 'filament.pages.settings';
-    protected static ?string $navigationLabel = 'Settings';
 
-    protected static ?string $navigationGroup = 'Configuration';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = "Page::".class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label') ?? "Setup";
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = "Page::".class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? "Configuration";
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        $resourceName = "Page::".class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-cog';
+    }
 
     public $settings = [];
 
