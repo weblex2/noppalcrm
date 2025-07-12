@@ -17,7 +17,23 @@ class FilamentActionResource extends Resource
 {
     protected static ?string $model = FilamentAction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
+    }
+
+    public static function getNavigationIcon(): ?string{
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Configuration';
+    }
 
     public static function form(Form $form): Form
     {
