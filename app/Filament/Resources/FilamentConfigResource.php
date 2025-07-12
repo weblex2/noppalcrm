@@ -57,6 +57,8 @@ class FilamentConfigResource extends Resource
                     ->maxLength(191),
                 Forms\Components\TextInput::make('order')
                     ->numeric(),
+                Forms\Components\TextInput::make('navigation_group'),
+                Forms\Components\TextInput::make('icon'),
             ]);
     }
 
@@ -77,6 +79,9 @@ class FilamentConfigResource extends Resource
                 Tables\Columns\TextColumn::make('order')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('navigation_group'),
+                Tables\Columns\TextColumn::make('icon'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -99,6 +104,7 @@ class FilamentConfigResource extends Resource
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {
