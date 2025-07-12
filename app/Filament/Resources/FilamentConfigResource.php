@@ -58,7 +58,9 @@ class FilamentConfigResource extends Resource
                 Forms\Components\TextInput::make('order')
                     ->numeric(),
                 Forms\Components\TextInput::make('navigation_group'),
+                Forms\Components\TextInput::make('navigation_label'),
                 Forms\Components\TextInput::make('icon'),
+
             ]);
     }
 
@@ -80,6 +82,7 @@ class FilamentConfigResource extends Resource
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('navigation_group'),
+                Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('icon'),
 
                 Tables\Columns\TextColumn::make('created_at')
