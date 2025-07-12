@@ -16,4 +16,9 @@ class EditFilamentConfig extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return FilamentConfigResource::getUrl('index');
+    }
 }
