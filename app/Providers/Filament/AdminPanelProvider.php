@@ -100,6 +100,7 @@ class AdminPanelProvider extends PanelProvider
             if (class_exists($resourceClass)) {
                 $navigation_group = $filter['navigation_group'];
                 $navigation_icon = $filter['icon'] ?? 'heroicon-o-rectangle-stack';
+                $navigation_label = $filter['label'] ?? Str::studly($filter['resource']) ." -> ".$filter->value;
                 $navItem = NavigationItem::make($name);
                 $navItem->url(function () use ($resourceClass, $filterKey): string {
                     if (
@@ -116,6 +117,7 @@ class AdminPanelProvider extends PanelProvider
                     return '#'; // Kein valider Link → kein Fehler in Navigation
                 })
                 ->icon($navigation_icon)
+                ->label($navigation_label)
                 ->group($navigation_group);
                 //->badge($counts[$filter] ?? 0);
                 $navItems[] = $navItem;
