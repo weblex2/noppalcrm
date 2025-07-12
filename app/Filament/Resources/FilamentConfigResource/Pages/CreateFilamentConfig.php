@@ -14,4 +14,5 @@ class CreateFilamentConfig extends CreateRecord
     {
         return FilamentConfigResource::getUrl('index');
     }
+
 }

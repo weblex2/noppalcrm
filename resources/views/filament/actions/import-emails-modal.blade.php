@@ -1,1 +1,1 @@
-import emails modal
+@livewire('import-emails')

@@ -457,8 +457,8 @@ class FilamentFieldsController extends Controller
             $action->icon('heroicon-o-inbox');
             $action->modalHeading($db_action->label);
             $action->modalContent(fn () => view($db_action->view, $parameter));
-            $action->modalSubmitAction($db_action->action_submit_action);
-            $action->modalCancelAction($db_action->action_cancel_action);
+            $action->modalSubmitAction($db_action->action_submit_action == 0 ? false : true);
+            $action->modalCancelAction($db_action->action_cancel_action == 0 ? false : true);
             $actions[] = $action;
         }
 

@@ -21,4 +21,5 @@ class EditFilamentConfig extends EditRecord
     {
         return FilamentConfigResource::getUrl('index');
     }
+
 }

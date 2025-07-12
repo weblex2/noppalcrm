@@ -36,6 +36,14 @@ class UserResource extends Resource
                     ->password()
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('user01')
+                    ->label('IMAP Password')
+                    ->password() // Eingabe maskieren
+                    ->afterStateHydrated(fn ($component) => $component->state('')) // Nie entschlüsseltes Passwort anzeigen
+                    ->dehydrated(fn (?string $state): bool => filled($state)) // Nur speichern, wenn etwas eingegeben wurde
+                    ->dehydrateStateUsing(fn (string $state): string => encrypt($state)) // Neue Eingabe verschlüsseln
+                    ->visibleOn(['create', 'edit'])
+                    ->maxLength(255),
             ]);
     }
 
