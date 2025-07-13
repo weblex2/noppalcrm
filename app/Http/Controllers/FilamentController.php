@@ -7,6 +7,9 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\FilamentAction;
+use App\Models\FilamentConfig;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
 
 class FilamentController extends Controller
@@ -114,5 +117,17 @@ class FilamentController extends Controller
         } catch (\Throwable $e) {
             return false;
         }
+    }
+
+    public static function getTableFilter($resource){
+        // Dynamische Filter generieren
+        $filterGroups = FilamentConfig::getFiltersFor('house');
+        $filters = [];
+
+        foreach ($filterGroups as $field => $options) {
+            $filters[] = SelectFilter::make($field)->options($options);
+        }
+
+        return $filters;
     }
 }

@@ -8,13 +8,14 @@ class FilamentConfig extends Model
 {
     protected $guarded = ['id'];
 
-    public static function getFiltersFor(string $resource, string $field): array
+    public static function getFiltersFor(string $resource): array
     {
         return self::query()
-            ->where('type', 'option')
-            ->where('field', $field)
-            ->where('resource', $resource)
-            ->pluck('value', 'key') // ergibt ein Array: ['key1' => 'value1', ...]
-            ->toArray();
+        ->where('type', 'filter')
+        ->where('resource', $resource)
+        ->get()
+        ->groupBy('field') // Gruppiert nach 'status', 'region' etc.
+        ->map(fn($group) => $group->pluck('value', 'key')->toArray()) // ['key' => 'value']
+        ->toArray();
     }
 }
