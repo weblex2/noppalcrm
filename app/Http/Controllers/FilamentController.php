@@ -12,6 +12,9 @@ use App\Models\FilamentConfig;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
+use Illuminate\Support\Facades\DB;
+
+
 
 class FilamentController extends Controller
 {
@@ -219,5 +222,14 @@ class FilamentController extends Controller
 
         asort($tables);
         return $tables;
+    }
+
+    public static function getNavigationGroups(){
+        return ['' => '<none>'] + DB::table('resource_configs')
+                        ->whereNotNull('navigation_group')
+                        ->distinct()
+                        ->orderBy('navigation_group')
+                        ->pluck('navigation_group', 'navigation_group')
+                        ->toArray();
     }
 }

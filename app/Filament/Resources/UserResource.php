@@ -17,8 +17,23 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'User Management';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
+    }
+
+    public static function getNavigationIcon(): ?string{
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
+    }
 
     public static function form(Form $form): Form
     {

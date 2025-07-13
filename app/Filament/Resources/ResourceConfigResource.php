@@ -33,8 +33,8 @@ class ResourceConfigResource extends Resource
     }
 
     public static function getNavigationIcon(): ?string{
-        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
-        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-user';
     }
 
     public static function getNavigationGroup(): ?string
@@ -51,7 +51,7 @@ class ResourceConfigResource extends Resource
             Forms\Components\Select::make('resource')
                 ->label('Tabelle')
                 ->options(function () {
-                    return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
+                    return FilamentController::getResourcesDropdown(true,true);
                 })
                 ->required()
                 ->reactive() ,
@@ -60,19 +60,11 @@ class ResourceConfigResource extends Resource
                 ->label('Navigation Group')
                 ->searchable()
                 ->options(function () {
-                    return ['' => '<none>'] + DB::table('resource_configs')
-                        ->whereNotNull('navigation_group')
-                        ->distinct()
-                        ->orderBy('navigation_group')
-                        ->pluck('navigation_group', 'navigation_group')
-                        ->toArray();
+                    return FilamentController::getNavigationGroups();
                 })
                 ->getSearchResultsUsing(function (string $search) {
                     // Statische Liste laden
-                    $tags = [
-                        'configuration' => 'Configuration',
-                        'test' => 'Test',
-                    ];
+                    $tags = [];
 
                     // Den eingegebenen Suchbegriff prüfen
                     if ($search && !array_key_exists($search, $tags)) {
