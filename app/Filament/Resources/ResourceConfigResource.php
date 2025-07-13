@@ -95,7 +95,7 @@ class ResourceConfigResource extends Resource
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
             Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
-            ]
+            ] 
         )->columns(4);
     }
 
