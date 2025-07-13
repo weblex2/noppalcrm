@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\FilamentConfigResource\Pages;
 use App\Filament\Resources\FilamentConfigResource\RelationManagers;
 use App\Models\FilamentConfig;
+use App\Models\TableFields;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
