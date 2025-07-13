@@ -11,7 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Facades\Filament; 
+use Filament\Facades\Filament;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
@@ -92,7 +92,7 @@ class ResourceConfigResource extends Resource
                     }
                 })
                 ->reactive(),
-            Forms\Components\Select::make('navigation_icon')
+            /* Forms\Components\Select::make('navigation_icon')
                 ->label('Icon auswählen')
                 ->options([
                     'heroicon-o-user' => '<x-heroicon-o-user class="w-5 h-5 inline" /> User',
@@ -102,7 +102,8 @@ class ResourceConfigResource extends Resource
                 ->disablePlaceholderSelection()
                 ->searchable()
                 ->allowHtml() // wichtig!
-                ->suffixIcon(fn ($state) => $state), // zeigt das aktuell gewählte Icon,
+                ->suffixIcon(fn ($state) => $state), // zeigt das aktuell gewählte Icon, */
+            Forms\Components\TextInput::make('navigation_icon'),
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
             Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
