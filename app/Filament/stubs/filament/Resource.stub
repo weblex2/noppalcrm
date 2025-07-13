@@ -65,20 +65,14 @@ class {{ resourceClass }} extends Resource
     public static function table(Table $table): Table
     {
         $fc = new FilamentFieldsController('{{table}}',0);
-        $table_fields = $fc->getTableFields() ?? [];
+        $tableFields = $fc->getTableFields() ?? [];
 
         // Dynamische Filter generieren
         $tableFilters = FilamentController::getTableFilter('{{table}}');
 
         return $table
-            ->columns($table_fields)
-            ->filters([
-                //Tables\Filters\TrashedFilter::make(),
-                SelectFilter::make('status')
-                    ->options(function () {
-                        return FilamentConfig::getFiltersFor('customer', 'status');
-                    }),
-            ])
+            ->columns($tableFields)
+            ->filters($tableFilters)
             ->actions([
 {{ tableActions }}
             ])
