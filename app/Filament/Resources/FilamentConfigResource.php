@@ -75,6 +75,12 @@ class FilamentConfigResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('type')
+                    ->icon(fn (string $state): string => match($state) {
+                        'filter' => 'heroicon-o-funnel',
+                        'navlink' => 'heroicon-o-rectangle-group',
+                        'option' => 'heroicon-o-bars-4',
+                        default => 'heroicon-o-question-mark-circle',
+                    })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('resource')
                     ->searchable(),
