@@ -25,13 +25,6 @@ class ResourceCreator extends Component implements HasForms
 
     public function mount(): void
     {
-        Log::info('ResourceCreator: Mount aufgerufen', [
-            'class' => __CLASS__,
-            'file' => __FILE__,
-            'time' => now()->toDateTimeString(),
-            'livewire_id' => $this->getId(),
-        ]);
-
         try {
             $this->navigationGroups = \DB::table('filament_configs')
                 ->distinct()

@@ -41,9 +41,13 @@ class FilamentConfigResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('type')
+                Forms\Components\Select::make('type')
                     ->required()
-                    ->maxLength(191),
+                    ->options([
+                        'navlink' => 'Navigation Link',
+                        'option' => 'Option',
+                        'filter' => 'Filter',
+                    ]),
                 Forms\Components\TextInput::make('resource')
                     ->required()
                     ->maxLength(191),
