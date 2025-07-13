@@ -121,7 +121,7 @@ class FilamentController extends Controller
 
     public static function getTableFilter($resource){
         // Dynamische Filter generieren
-        $filterGroups = FilamentConfig::getFiltersFor('house');
+        $filterGroups = FilamentConfig::getFiltersFor($resource);
         $filters = [];
 
         foreach ($filterGroups as $field => $options) {

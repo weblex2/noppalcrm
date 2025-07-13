@@ -20,6 +20,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use App\Http\Controllers\FilamentHelper;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\FilamentController;
 
 class {{ resourceClass }} extends Resource
 {
@@ -65,6 +66,10 @@ class {{ resourceClass }} extends Resource
     {
         $fc = new FilamentFieldsController('{{table}}',0);
         $table_fields = $fc->getTableFields() ?? [];
+
+        // Dynamische Filter generieren
+        $tableFilters = FilamentController::getTableFilter('{{table}}');
+
         return $table
             ->columns($table_fields)
             ->filters([
