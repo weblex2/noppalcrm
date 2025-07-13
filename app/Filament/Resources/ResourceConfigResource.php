@@ -4,13 +4,14 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ResourceConfigResource\Pages;
 use App\Filament\Resources\ResourceConfigResource\RelationManagers;
+use App\Http\Controllers\FilamentController;
 use App\Models\ResourceConfig;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Facades\Filament;
+use Filament\Facades\Filament; 
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
@@ -91,11 +92,21 @@ class ResourceConfigResource extends Resource
                     }
                 })
                 ->reactive(),
-            Forms\Components\TextInput::make('navigation_icon'),
+            Forms\Components\Select::make('navigation_icon')
+                ->label('Icon auswählen')
+                ->options([
+                    'heroicon-o-user' => '<x-heroicon-o-user class="w-5 h-5 inline" /> User',
+                    'heroicon-o-cog' => '<x-heroicon-o-cog class="w-5 h-5 inline" /> Settings',
+                    'heroicon-o-document-text' => '<x-heroicon-o-document-text class="w-5 h-5 inline" /> Document',
+                ])
+                ->disablePlaceholderSelection()
+                ->searchable()
+                ->allowHtml() // wichtig!
+                ->suffixIcon(fn ($state) => $state), // zeigt das aktuell gewählte Icon,
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
             Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
-            ] 
+            ]
         )->columns(4);
     }
 
@@ -163,87 +174,6 @@ class ResourceConfigResource extends Resource
 
     public static function getTableOptions(): array
     {
-        $resources = Filament::getResources();
-        $tables = [];
-
-        foreach ($resources as $resourceClass) {
-            if (!method_exists($resourceClass, 'getModel')) {
-                continue;
-            }
-
-            $modelClass = $resourceClass::getModel();
-
-            if (!class_exists($modelClass)) {
-                continue;
-            }
-
-            // Resource selbst
-            $model = new $modelClass();
-            $table = Str::singular($model->getTable());
-            $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
-            $key = Str::studly($table) . 'Resource';
-
-            $tables[$key] = $label;
-
-            // RelationManagers einbeziehen
-            if (method_exists($resourceClass, 'getRelations')) {
-                foreach ($resourceClass::getRelations() as $relationManagerClass) {
-                    if (!class_exists($relationManagerClass)) {
-                        continue;
-                    }
-
-                    try {
-                        $reflection = new \ReflectionClass($relationManagerClass);
-                        $property = $reflection->getProperty('relationship');
-                        $property->setAccessible(true);
-                        $relationName = $property->getValue();
-
-                        if (!method_exists($modelClass, $relationName)) {
-                            continue;
-                        }
-
-                        $relation = (new $modelClass)->{$relationName}();
-                        if (!$relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
-                            continue;
-                        }
-
-                        $relatedModel = $relation->getRelated();
-                        $relatedTable = Str::singular($relatedModel->getTable());
-                        $relatedLabel = Str::headline(Str::plural(class_basename($relatedModel)));
-
-                        // Key und Label zusammensetzen
-                        $relationKey = Str::studly($table) . 'Resource::' . $relationName;
-                        $relationLabel = $label . ' → ' . $relatedLabel;
-
-                        $tables[$relationKey] = $relationLabel;
-                    } catch (\Throwable $e) {
-                        \Log::channel('crm')->warning("Fehler bei RelationManager $relationManagerClass: " . $e->getMessage());
-                    }
-                }
-            }
-        }
-
-        $pageFiles = \File::files(app_path('Filament/Pages'));
-
-        foreach ($pageFiles as $file) {
-            if ($file->getExtension() !== 'php') {
-                continue;
-            }
-
-            $className = 'App\\Filament\\Pages\\' . $file->getFilenameWithoutExtension();
-
-            if (!class_exists($className)) {
-                continue;
-            }
-
-            $base = class_basename($className);
-            $label = Str::headline($base);
-            $key = 'Page::' . $base;
-
-            $tables[$key] = $label;
-        }
-
-        asort($tables);
-        return $tables;
+        return FilamentController::getResourcesDropdown(true,true);
     }
 }

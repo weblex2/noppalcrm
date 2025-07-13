@@ -7,6 +7,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\FilamentAction;
+use Filament\Facades\Filament;
 use App\Models\FilamentConfig;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
@@ -86,8 +87,6 @@ class FilamentController extends Controller
         return false;
     }
 
-
-
     function modelHasRelation(string $modelClass, string $methodName, string $expectedType, string $targetModel): bool
     {
         if (!method_exists($modelClass, $methodName)) {
@@ -119,7 +118,8 @@ class FilamentController extends Controller
         }
     }
 
-    public static function getTableFilter($resource){
+    public static function getTableFilter($resource)
+    {
         // Dynamische Filter generieren
         $filterGroups = FilamentConfig::getFiltersFor($resource);
         $filters = [];
@@ -129,5 +129,95 @@ class FilamentController extends Controller
         }
 
         return $filters;
+    }
+
+    public static function getResourcesDropdown($incRelMan = true, $incPages = true): array
+    {
+        $resources = Filament::getResources();
+        $tables = [];
+
+        foreach ($resources as $resourceClass) {
+            if (!method_exists($resourceClass, 'getModel')) {
+                continue;
+            }
+
+            $modelClass = $resourceClass::getModel();
+
+            if (!class_exists($modelClass)) {
+                continue;
+            }
+
+            // Resource selbst
+            $model = new $modelClass();
+            $table = Str::singular($model->getTable());
+            $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
+            $key = Str::studly($table) . 'Resource';
+
+            $tables[$key] = $label;
+
+            // RelationManagers einbeziehen
+            if ($incRelMan){
+                if (method_exists($resourceClass, 'getRelations')) {
+                    foreach ($resourceClass::getRelations() as $relationManagerClass) {
+                        if (!class_exists($relationManagerClass)) {
+                            continue;
+                        }
+
+                        try {
+                            $reflection = new \ReflectionClass($relationManagerClass);
+                            $property = $reflection->getProperty('relationship');
+                            $property->setAccessible(true);
+                            $relationName = $property->getValue();
+
+                            if (!method_exists($modelClass, $relationName)) {
+                                continue;
+                            }
+
+                            $relation = (new $modelClass)->{$relationName}();
+                            if (!$relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                                continue;
+                            }
+
+                            $relatedModel = $relation->getRelated();
+                            $relatedTable = Str::singular($relatedModel->getTable());
+                            $relatedLabel = Str::headline(Str::plural(class_basename($relatedModel)));
+
+                            // Key und Label zusammensetzen
+                            $relationKey = Str::studly($table) . 'Resource::' . $relationName;
+                            $relationLabel = $label . ' → ' . $relatedLabel;
+
+                            $tables[$relationKey] = $relationLabel;
+                        } catch (\Throwable $e) {
+                            \Log::channel('crm')->warning("Fehler bei RelationManager $relationManagerClass: " . $e->getMessage());
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($incPages){
+            $pageFiles = \File::files(app_path('Filament/Pages'));
+
+            foreach ($pageFiles as $file) {
+                if ($file->getExtension() !== 'php') {
+                    continue;
+                }
+
+                $className = 'App\\Filament\\Pages\\' . $file->getFilenameWithoutExtension();
+
+                if (!class_exists($className)) {
+                    continue;
+                }
+
+                $base = class_basename($className);
+                $label = Str::headline($base);
+                $key = 'Page::' . $base;
+
+                $tables[$key] = $label;
+            }
+        }
+
+        asort($tables);
+        return $tables;
     }
 }
