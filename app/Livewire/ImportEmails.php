@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Http\Controllers\MailController;
 
+
 class ImportEmails extends Component
 {
     public array $emails = [];
