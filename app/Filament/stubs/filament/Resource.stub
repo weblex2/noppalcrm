@@ -53,6 +53,12 @@ class {{ resourceClass }} extends Resource
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('show_in_nav_bar') ?? true;
     }
 
+    public static function getNavigationSort(): ?int
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_sort') ?? null;
+    }
+
     public static function form(Form $form): Form
     {
         $fc = new FilamentFieldsController('{{table}}',1);

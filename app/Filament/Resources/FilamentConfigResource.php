@@ -99,7 +99,17 @@ class FilamentConfigResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('table')
+                    ->options(function () {
+                         // Hole alle distinct "table" Werte aus der Tabelle
+                        $options = TableFields::select('table')
+                            ->distinct()
+                            ->pluck('table', 'table')
+                            ->toArray();
+                        // Füge die Option "Alle" hinzu
+                        // Wir fügen den speziellen Wert für "Alle" zu den Optionen hinzu
+                        return  $options;
+                    })
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

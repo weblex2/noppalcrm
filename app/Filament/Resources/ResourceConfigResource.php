@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Http\Controllers\FilamentFieldsController;
+use Filament\Tables\Filters\SelectFilter;
 
 class ResourceConfigResource extends Resource
 {
@@ -41,6 +42,12 @@ class ResourceConfigResource extends Resource
     {
         $resourceName = class_basename(static::class);
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_sort') ?? null;
     }
 
     public static function form(Form $form): Form
@@ -99,6 +106,7 @@ class ResourceConfigResource extends Resource
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
             Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
+            Forms\Components\TextInput::make('navigation_sort')->label('Navigation Order')->numeric(),
             ]
         )->columns(4);
     }
@@ -133,10 +141,13 @@ class ResourceConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_icon'),
                 Tables\Columns\IconColumn::make('keep_filter')->label('Keep Filter')->boolean(),
                 Tables\Columns\IconColumn::make('show_in_nav_bar')->label('Show in Navbar')->boolean(),
+                Tables\Columns\TextColumn::make('navigation_sort'),
                 ]
             )
             ->filters([
-                //
+                SelectFilter::make('resource')
+                    ->options(FilamentController::getResourcesDropdown()),
+
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

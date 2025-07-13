@@ -12,12 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('resource_configs', function (Blueprint $table) {
-            $table->boolean('show_in_nav_bar')->after('navigation_label')->default(0);
+            $table->integer('navigation_sort')->after('navigation_label')->default(0);
         });
     }
 
     public function down(): void
     {
-        Schema::dropColumn('show_in_nav_bar');
+        Schema::dropColumn('navigation_sort');
     }
 };

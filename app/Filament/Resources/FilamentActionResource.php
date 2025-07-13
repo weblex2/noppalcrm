@@ -12,96 +12,73 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Tables\Actions;
+use App\Http\Controllers\FilamentFieldsController;
+use Illuminate\Support\Facades\File;
+use App\Models\FilamentConfig;
+use Filament\Tables\Filters\TernaryFilter;
+use Filament\Tables\Filters\SelectFilter;
+use App\Http\Controllers\FilamentHelper;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Controllers\FilamentController;
 
 class FilamentActionResource extends Resource
 {
     protected static ?string $model = FilamentAction::class;
 
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+
     public static function getNavigationLabel(): string
     {
-        $resourceName = class_basename(static::class);
+        $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
             ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
     }
 
-    public static function getNavigationIcon(): ?string{
-        $resourceName = class_basename(static::class);
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-rectangle-stack';
     }
 
-    public static function getNavigationGroup(): ?string
+    public static function shouldRegisterNavigation(): bool
     {
         $resourceName = class_basename(static::class);
-        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Configuration';
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('show_in_nav_bar') ?? true;
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_sort') ?? null;
     }
 
     public static function form(Form $form): Form
     {
+        $fc = new FilamentFieldsController('filament_actions',1);
+        $schema = $fc->getSchema() ?? [];
         return $form
-            ->schema([
-                Forms\Components\TextInput::make('resource')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('action_name')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('label')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('icon')
-                    ->maxLength(255),
-                Forms\Components\Select::make('type')
-                    ->required()
-                    ->options(['header' => 'Header', 'row' => "Row"])
-                    ->default('header'),
-                Forms\Components\TextInput::make('color')
-                    ->maxLength(255),
-                Forms\Components\TextInput::make('view')
-                    ->required()
-                    ->maxLength(255),
-                Forms\Components\Toggle::make('modal_submit_action')
-                    ->label('Submit erlaubt')
-                    ->default(false)
-                    ->required(),
-                Forms\Components\Toggle::make('modal_cancel_action')
-                    ->label('Abbrechen erlaubt')
-                    ->default(false)
-                    ->required()
-            ]);
+            ->schema($schema);
     }
+
 
     public static function table(Table $table): Table
     {
+        $fc = new FilamentFieldsController('filament_actions',0);
+        $tableFields = $fc->getTableFields() ?? [];
+
+        // Dynamische Filter generieren
+        $tableFilters = FilamentController::getTableFilter('filament_actions');
+
         return $table
-            ->columns([
-                Tables\Columns\TextColumn::make('resource')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('action_name')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('label')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('icon')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('color')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('view')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('modal_submit_action')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('modal_cancel_action')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-            ])
-            ->filters([
-                //
-            ])
+            ->columns($tableFields)
+            ->filters($tableFilters)
             ->actions([
                 Tables\Actions\EditAction::make(),
             ])
@@ -109,14 +86,42 @@ class FilamentActionResource extends Resource
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
+            ])
+            ->headerActions([
+                Actions\Action::make('Exportieren')
+                    ->label('Excel Export')
+                    ->icon('heroicon-o-folder-arrow-down')
+                    ->action(function (array $data, $livewire) {
+                        $records = $livewire->getFilteredTableQuery()->get(); // Das funktioniert bei Table-Components
+                        $records = FilamentHelper::excelExport($records);
+                        // Anonyme Export-Klasse
+                        return Excel::download($records, 'export.xlsx');
+                    }),
+                Actions\Action::make('addField')
+                    ->label('Feld hinzufügen')
+                    ->icon('heroicon-o-plus-circle')
+                    ->modalContent(function ($record) {
+                        return view('filament.actions.add-db-field-modal', [
+                            'tableName' => 'filament_actions',
+                        ]);
+                    })
+                    ->modalSubmitAction(false)
+                    ->modalCancelAction(false),
+
             ]);
     }
-
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        $relations = [];
+        $path = app_path('Filament/Resources/FilamentActionResource/RelationManagers');
+        if (file_exists($path)){
+        $relations =  collect(File::files($path))
+            ->map(fn ($file) => 'App\\Filament\\Resources\\FilamentActionResource\\RelationManagers\\' . $file->getFilenameWithoutExtension())
+            ->filter(fn ($class) => class_exists($class))
+            ->values()
+            ->toArray();
+        }
+        return $relations;
     }
 
     public static function getPages(): array
