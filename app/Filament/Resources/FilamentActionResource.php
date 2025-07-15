@@ -1,10 +1,10 @@
 <?php
 
-namespace {{ namespace }};
+namespace App\Filament\Resources;
 
-{{ clusterImport }}use {{ resource }}\Pages;
-use {{ resource }}\RelationManagers;
-use {{ model }};
+use App\Filament\Resources\FilamentActionResource\Pages;
+use App\Filament\Resources\FilamentActionResource\RelationManagers;
+use App\Models\FilamentAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -22,11 +22,11 @@ use App\Http\Controllers\FilamentHelper;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\FilamentController;
 
-class {{ resourceClass }} extends Resource
+class FilamentActionResource extends Resource
 {
-    protected static ?string $model = {{ modelClass }}::class;
+    protected static ?string $model = FilamentAction::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';{{ clusterAssignment }}
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function getNavigationLabel(): string
     {
@@ -61,7 +61,7 @@ class {{ resourceClass }} extends Resource
 
     public static function form(Form $form): Form
     {
-        $fc = new FilamentFieldsController('{{table}}',1);
+        $fc = new FilamentFieldsController('filament_actions',1);
         $schema = $fc->getSchema() ?? [];
         return $form
             ->schema($schema);
@@ -70,21 +70,21 @@ class {{ resourceClass }} extends Resource
 
     public static function table(Table $table): Table
     {
-        $fc = new FilamentFieldsController('{{table}}',0);
+        $fc = new FilamentFieldsController('filament_actions',0);
         $tableFields = $fc->getTableFields() ?? [];
 
         // Dynamische Filter generieren
-        $tableFilters = FilamentController::getTableFilter('{{table}}');
+        $tableFilters = FilamentController::getTableFilter('filament_actions');
 
         return $table
             ->columns($tableFields)
             ->filters($tableFilters)
             ->actions([
-{{ tableActions }}
+                Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-{{ tableBulkActions }}
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
             ->headerActions([
@@ -102,7 +102,7 @@ class {{ resourceClass }} extends Resource
                     ->icon('heroicon-o-plus-circle')
                     ->modalContent(function ($record) {
                         return view('filament.actions.add-db-field-modal', [
-                            'tableName' => '{{table}}',
+                            'tableName' => 'filament_actions',
                         ]);
                     })
                     ->modalSubmitAction(false)
@@ -113,10 +113,10 @@ class {{ resourceClass }} extends Resource
     public static function getRelations(): array
     {
         $relations = [];
-        $path = app_path('Filament/Resources/{{ resourceClass }}/RelationManagers');
+        $path = app_path('Filament/Resources/FilamentActionResource/RelationManagers');
         if (file_exists($path)){
         $relations =  collect(File::files($path))
-            ->map(fn ($file) => 'App\\Filament\\Resources\\{{ resourceClass }}\\RelationManagers\\' . $file->getFilenameWithoutExtension())
+            ->map(fn ($file) => 'App\\Filament\\Resources\\FilamentActionResource\\RelationManagers\\' . $file->getFilenameWithoutExtension())
             ->filter(fn ($class) => class_exists($class))
             ->values()
             ->toArray();
@@ -127,7 +127,9 @@ class {{ resourceClass }} extends Resource
     public static function getPages(): array
     {
         return [
-{{ pages }}
+            'index' => Pages\ListFilamentActions::route('/'),
+            'create' => Pages\CreateFilamentAction::route('/create'),
+            'edit' => Pages\EditFilamentAction::route('/{record}/edit'),
         ];
-    }{{ eloquentQuery }}
+    }
 }

@@ -5,11 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\FilamentConfigResource\Pages;
 use App\Filament\Resources\FilamentConfigResource\RelationManagers;
 use App\Models\FilamentConfig;
+use App\Models\TableFields;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
@@ -41,9 +43,13 @@ class FilamentConfigResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('type')
+                Forms\Components\Select::make('type')
                     ->required()
-                    ->maxLength(191),
+                    ->options([
+                        'navlink' => 'Navigation Link',
+                        'option' => 'Option',
+                        'filter' => 'Filter',
+                    ]),
                 Forms\Components\TextInput::make('resource')
                     ->required()
                     ->maxLength(191),
@@ -57,6 +63,10 @@ class FilamentConfigResource extends Resource
                     ->maxLength(191),
                 Forms\Components\TextInput::make('order')
                     ->numeric(),
+                Forms\Components\TextInput::make('navigation_group'),
+                Forms\Components\TextInput::make('navigation_label'),
+                Forms\Components\TextInput::make('icon'),
+
             ]);
     }
 
@@ -65,6 +75,12 @@ class FilamentConfigResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('type')
+                    ->icon(fn (string $state): string => match($state) {
+                        'filter' => 'heroicon-o-funnel',
+                        'navlink' => 'heroicon-o-rectangle-group',
+                        'option' => 'heroicon-o-bars-4',
+                        default => 'heroicon-o-question-mark-circle',
+                    })
                     ->searchable(),
                 Tables\Columns\TextColumn::make('resource')
                     ->searchable(),
@@ -77,6 +93,10 @@ class FilamentConfigResource extends Resource
                 Tables\Columns\TextColumn::make('order')
                     ->numeric()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('navigation_group'),
+                Tables\Columns\TextColumn::make('navigation_label'),
+                Tables\Columns\TextColumn::make('icon'),
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -87,7 +107,17 @@ class FilamentConfigResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('resource')
+                    ->options(function () {
+                         // Hole alle distinct "table" Werte aus der Tabelle
+                        $options = TableFields::select('table')
+                            ->distinct()
+                            ->pluck('table', 'table')
+                            ->toArray();
+                        // Füge die Option "Alle" hinzu
+                        // Wir fügen den speziellen Wert für "Alle" zu den Optionen hinzu
+                        return  $options;
+                    })
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
@@ -95,10 +125,11 @@ class FilamentConfigResource extends Resource
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
+
 
     public static function getRelations(): array
     {

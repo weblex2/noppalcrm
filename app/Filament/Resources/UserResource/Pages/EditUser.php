@@ -16,4 +16,19 @@ class EditUser extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        \Log::channel('crm')->info('MutateFormDataBeforeSave', ['data' => $data]);
+        if (!filled($data['user01'] ?? null)) {
+            unset($data['user01']); // bleibt alter DB-Wert erhalten
+        }
+
+        return $data;
+    }
 }

@@ -17,8 +17,23 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationGroup = 'User Management';
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label')
+            ?? parent::getNavigationLabel(); // Fallback auf Standardlabel
+    }
+
+    public static function getNavigationIcon(): ?string{
+        $resourceName = class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? null;
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = class_basename(static::class);
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? null;
+    }
 
     public static function form(Form $form): Form
     {
@@ -35,6 +50,14 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('user01')
+                    ->label('IMAP Password')
+                    ->password() // Eingabe maskieren
+                    ->afterStateHydrated(fn ($component) => $component->state('')) // Nie entschlüsseltes Passwort anzeigen
+                    ->dehydrated(fn (?string $state): bool => filled($state)) // Nur speichern, wenn etwas eingegeben wurde
+                    ->dehydrateStateUsing(fn (string $state): string => encrypt($state)) // Neue Eingabe verschlüsseln
+                    ->visibleOn(['create', 'edit'])
                     ->maxLength(255),
             ]);
     }

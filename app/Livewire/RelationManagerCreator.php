@@ -158,8 +158,7 @@ class RelationManagerCreator extends Component implements HasForms
                 ->send();
         }
     }
-
-
+    
     public function render()
     {
         return view('livewire.relation-manager-creator');

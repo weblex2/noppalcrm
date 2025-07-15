@@ -12,6 +12,8 @@ use Filament\Forms;
 use Illuminate\Support\Facades\DB;
 use Filament\Tables\Columns\DateTimeColumn;
 use App\Models\Section;
+use App\Models\FilamentAction;
+use Filament\Tables\Actions;
 
 class FilamentFieldsController extends Controller
 {
@@ -444,5 +446,22 @@ class FilamentFieldsController extends Controller
                 $this->field->color($this->config->badge_color);
             }
         }
+    }
+
+    public static function getActions($type = "header"){
+        $db_actions = FilamentAction::where('resource','contact_person')->where('type',$type)->get();
+        foreach ($db_actions as $db_action){
+            $parameter = json_decode($db_action->parameter, true) ?? [];
+            $action = Tables\Actions\Action::make($db_action->action_name);
+            $action->label($db_action->label);
+            $action->icon('heroicon-o-inbox');
+            $action->modalHeading($db_action->label);
+            $action->modalContent(fn () => view($db_action->view, $parameter));
+            $action->modalSubmitAction($db_action->action_submit_action == 0 ? false : true);
+            $action->modalCancelAction($db_action->action_cancel_action == 0 ? false : true);
+            $actions[] = $action;
+        }
+
+        return $actions;
     }
 }
