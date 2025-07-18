@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Filament\Tables\Columns\DateTimeColumn;
 use App\Models\Section;
 use App\Models\FilamentAction;
+use App\Models\ResourceConfig;
 use Filament\Tables\Actions;
 
 class FilamentFieldsController extends Controller
@@ -50,7 +51,7 @@ class FilamentFieldsController extends Controller
 
         // Eindeutige Gruppen (Groups) ermitteln
         $groupIds = $tableFields->pluck('group')->unique();
-
+        $isWizard = ResourceConfig::where('resource', 'QuoteResource')->value('is_wizard');
         // Struktur aufbauen
         $groups = [];
 
@@ -62,7 +63,7 @@ class FilamentFieldsController extends Controller
             $sectionIds = $groupFields->pluck('section')->unique();
 
             $sections = [];
-            foreach ($sectionIds as $sectionId) {
+            foreach ($sectionIds as  $sectionId) {
 
                 $sectionFields = $groupFields->where('section', $sectionId);
 
@@ -84,16 +85,41 @@ class FilamentFieldsController extends Controller
                 })->toArray();
 
                 // Abschnitt erstellen
+                if ($isWizard){
+                    if ($sectionId!==2){
+                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
+                        ->schema($fieldSchemas)
+                        ->columns(3); // Optional: Anzahl der Spalten
+                    }
+                    else {
+                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
+                            ->schema([
+                                Forms\Components\Repeater::make($sectionLabel)
+                                    ->schema($fieldSchemas)
+                                    ->columns(3) // Optional: Anzahl der Spalten
+                            ]);
+                    }
+                }
+                else{
                 $sections[] = Forms\Components\Section::make($sectionLabel)
                     ->schema($fieldSchemas)
                     ->columns(3) // Optional: Anzahl der Spalten
                     ->collapsible();
+                }
             }
 
+
+            if ($isWizard){
+                $groups[] = Forms\Components\Wizard::make()
+                ->schema($sections)
+                ->columnSpan('full'); // Optional: Vollständige Breite
+            }
+            else{
             // Gruppe erstellen
             $groups[] = Forms\Components\Group::make()
                 ->schema($sections)
                 ->columnSpan('full'); // Optional: Vollständige Breite
+            }
         }
         //dd($groups);
         return $groups;
