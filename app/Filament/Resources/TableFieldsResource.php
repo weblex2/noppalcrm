@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\ColorPicker;
 use App\Http\Controllers\FilamentController;
+use Filament\Tables\Enums\ActionsPosition;
 
 class TableFieldsResource extends Resource
 {
@@ -32,6 +33,8 @@ class TableFieldsResource extends Resource
     protected static ?string $navigationGroup = 'Configuration';
 
     protected static ?string $navigationLabel = 'Fields';
+
+    protected static ?string $recordTitleAttribute = "table";
 
     protected static function getTitle(){
         return "Edit Fields";
@@ -236,7 +239,7 @@ class TableFieldsResource extends Resource
                 Tables\Columns\IconColumn::make('required')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('bgcolor')
+                Tables\Columns\ColorColumn::make('bgcolor')
             ])
             ->persistFiltersInSession()
             ->recordAction(Tables\Actions\EditAction::class)
@@ -270,6 +273,7 @@ class TableFieldsResource extends Resource
                     }),
             ])
             ->actions([
+                 Tables\Actions\ViewAction::make()->color('primary'),
                  Tables\Actions\EditAction::make()
                     ->modalHeading('Feld bearbeiten')
                     ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
@@ -294,11 +298,10 @@ class TableFieldsResource extends Resource
                         $params = $record->toArray();
                         unset($params['id']);
                         $params['label'] .= ' (Kopie)';
-
                         // Umleiten auf Create-Seite mit den Daten als Query-Parameter
                         return redirect(route('filament.admin.resources.table-fields.create', ['duplicate_data' => json_encode($params)]));
                     })
-            ])
+            ], position: Tables\Enums\ActionsPosition::AfterColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
