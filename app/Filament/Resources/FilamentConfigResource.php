@@ -44,30 +44,35 @@ class FilamentConfigResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Select::make('type')
-                    ->required()
-                    ->options([
-                        'navlink' => 'Navigation Link',
-                        'option' => 'Option',
-                        'filter' => 'Filter',
-                    ]),
-                Forms\Components\TextInput::make('resource')
-                    ->required()
-                    ->maxLength(191),
-                Forms\Components\TextInput::make('field')
-                    ->maxLength(191),
-                Forms\Components\TextInput::make('key')
-                    ->required()
-                    ->maxLength(191),
-                Forms\Components\TextInput::make('value')
-                    ->required()
-                    ->maxLength(191),
-                Forms\Components\TextInput::make('order')
-                    ->numeric(),
-                Forms\Components\TextInput::make('navigation_group'),
-                Forms\Components\TextInput::make('navigation_label'),
-                Forms\Components\TextInput::make('icon'),
-
+             Forms\Components\Group::make()
+                ->schema([
+                Forms\Components\Section::make('Base Settings')
+                    ->schema([
+                        Forms\Components\Select::make('type')
+                            ->required()
+                            ->options([
+                                'navlink' => 'Navigation Link',
+                                'option' => 'Option',
+                                'filter' => 'Filter',
+                            ]),
+                        Forms\Components\TextInput::make('resource')
+                            ->required()
+                            ->maxLength(191),
+                        Forms\Components\TextInput::make('field')
+                            ->maxLength(191),
+                        Forms\Components\TextInput::make('key')
+                            ->required()
+                            ->maxLength(191),
+                        Forms\Components\TextInput::make('value')
+                            ->required()
+                            ->maxLength(191),
+                        Forms\Components\TextInput::make('order')
+                            ->numeric(),
+                        Forms\Components\TextInput::make('navigation_group'),
+                        Forms\Components\TextInput::make('navigation_label'),
+                        Forms\Components\TextInput::make('icon'),
+                        ])->columns(4)
+                ])->columnSpan('full')
             ]);
     }
 
