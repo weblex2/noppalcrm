@@ -285,25 +285,27 @@ class TableFieldsResource extends Resource
                     }),
             ])
             ->actions([
-                 Tables\Actions\ViewAction::make()->color('primary'),
-                 Tables\Actions\EditAction::make()
-                    ->modalHeading('Feld bearbeiten')
-                    ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
-                    //->slideOver()
-                    ->mutateFormDataUsing(function (array $data) {
-                        if ($data['type'] === 'relation') {
-                            $config['source'] = $data['table'];
-                            $config['target'] = $data['relation_table'];
-                            $config['method'] = 'BelongsTo';
-                            $config['field'] = $data['field'];
-                            $config['relation_name'] = $data['relation_table'];
+                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()->color('primary'),
+                    Tables\Actions\EditAction::make()
+                        ->color('primary')
+                        ->modalHeading('Feld bearbeiten')
+                        ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
+                        //->slideOver()
+                        ->mutateFormDataUsing(function (array $data) {
+                            if ($data['type'] === 'relation') {
+                                $config['source'] = $data['table'];
+                                $config['target'] = $data['relation_table'];
+                                $config['method'] = 'BelongsTo';
+                                $config['field'] = $data['field'];
+                                $config['relation_name'] = $data['relation_table'];
 
-                            app(FilamentController::class)->checkIfRelationExists($config);
-                        }
+                                app(FilamentController::class)->checkIfRelationExists($config);
+                            }
 
-                        return $data;
-                    }),
-                Tables\Actions\Action::make('duplicate')
+                            return $data;
+                        }),
+                    Tables\Actions\Action::make('duplicate')
                     ->label('Duplizieren')
                     ->icon('heroicon-o-document-duplicate')
                     ->action(function ($record, $data, $livewire) {
@@ -313,6 +315,7 @@ class TableFieldsResource extends Resource
                         // Umleiten auf Create-Seite mit den Daten als Query-Parameter
                         return redirect(route('filament.admin.resources.table-fields.create', ['duplicate_data' => json_encode($params)]));
                     })
+                ])
             ], position: Tables\Enums\ActionsPosition::AfterColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
