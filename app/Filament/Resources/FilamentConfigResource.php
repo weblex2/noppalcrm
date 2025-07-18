@@ -11,6 +11,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -81,6 +82,7 @@ class FilamentConfigResource extends Resource
                         'option' => 'heroicon-o-bars-4',
                         default => 'heroicon-o-question-mark-circle',
                     })
+                    ->iconColor('primary')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('resource')
                     ->searchable(),
@@ -114,8 +116,14 @@ class FilamentConfigResource extends Resource
                             ->distinct()
                             ->pluck('table', 'table')
                             ->toArray();
-                        // Füge die Option "Alle" hinzu
-                        // Wir fügen den speziellen Wert für "Alle" zu den Optionen hinzu
+                        return  $options;
+                    }),
+                SelectFilter::make('type')
+                    ->options(function () {
+                        $options = FilamentConfig::select('type')
+                            ->distinct()
+                            ->pluck('type', 'type')
+                            ->toArray();
                         return  $options;
                     })
             ])
