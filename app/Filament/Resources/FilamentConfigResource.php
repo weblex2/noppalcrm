@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\FilamentConfigResource\Pages;
 use App\Filament\Resources\FilamentConfigResource\RelationManagers;
+use App\Http\Controllers\FilamentController;
 use App\Models\FilamentConfig;
 use App\Models\TableFields;
 use Filament\Forms;
@@ -15,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+
 
 class FilamentConfigResource extends Resource
 {
@@ -50,16 +52,24 @@ class FilamentConfigResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('type')
                             ->required()
+                            ->reactive()
                             ->options([
                                 'navlink' => 'Navigation Link',
                                 'option' => 'Option',
                                 'filter' => 'Filter',
-                            ]),
-                        Forms\Components\TextInput::make('resource')
+                                'section' => 'Section',
+                            ])
+                ]),
+                Forms\Components\Section::make('Navigation Links')
+                    ->schema([
+                        Forms\Components\Select::make('resource')
                             ->required()
-                            ->maxLength(191),
-                        Forms\Components\TextInput::make('field')
-                            ->maxLength(191),
+                            ->reactive()
+                            ->options(function () {
+                                return FilamentController::getResourcesDropdown(false,false);
+                            }),
+                        Forms\Components\Select::make('field')
+                             ->options(fn (callable $get) => array_filter(FilamentController::getResourcesFieldDropdown($get('resource')), fn($label) => $label !== null && $label !== '')),
                         Forms\Components\TextInput::make('key')
                             ->required()
                             ->maxLength(191),
@@ -70,9 +80,55 @@ class FilamentConfigResource extends Resource
                             ->numeric(),
                         Forms\Components\TextInput::make('navigation_group'),
                         Forms\Components\TextInput::make('navigation_label'),
+                        Forms\Components\TextInput::make('section_name'),
                         Forms\Components\TextInput::make('icon'),
-                        ])->columns(4)
-                ])->columnSpan('full')
+
+                        ])
+                        ->columns(4)
+                        ->visible(fn ($get) => $get('type') === 'navlink')
+                ])
+                ->columnSpan('full'),
+                Forms\Components\Section::make('Filter')
+                 ->schema([
+                    Forms\Components\Select::make('resource')
+                            ->required()
+                            ->options(function () {
+                                return FilamentController::getResourcesDropdown(false,false);
+                            }),
+                    Forms\Components\TextInput::make('key')
+                            ->required(),
+                 ])
+                 ->columns(4)
+                 ->visible(fn ($get) => $get('type') === 'filter'),
+                Forms\Components\Section::make('Options')
+                 ->schema([
+                    Forms\Components\Select::make('resource')
+                            ->required()
+                            ->options(function () {
+                                return FilamentController::getResourcesDropdown(false,false);
+                            }),
+                    Forms\Components\TextInput::make('key')
+                            ->required(),
+                        Forms\Components\TextInput::make('value')
+                            ->required()
+                 ])
+                 ->columns(4)
+                 ->visible(fn ($get) => $get('type') === 'option'),
+
+                Forms\Components\Section::make('Section')
+                    ->schema([
+                       Forms\Components\Toggle::make('repeater')->columnSpan(4),
+                       Forms\Components\Select::make('resource')
+                            ->required()
+                            ->options(function () {
+                                return FilamentController::getResourcesDropdown(false,false);
+                            }),
+
+                       Forms\Components\TextInput::make('nr')->numeric(),
+                       Forms\Components\TextInput::make('section_name'),
+                    ])
+                 ->columns(4)
+                 ->visible(fn ($get) => $get('type') === 'section')
             ]);
     }
 
