@@ -13,8 +13,7 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\DB;
-
-
+use Illuminate\Support\Facades\Schema;
 
 class FilamentController extends Controller
 {
@@ -222,6 +221,37 @@ class FilamentController extends Controller
 
         asort($tables);
         return $tables;
+    }
+
+    public static function getResourcesFieldDropdown(?string $resourceClass): array
+    {
+        if (!$resourceClass) {
+            return [];
+        }
+
+        $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
+
+        if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
+            $modelClass = $fullClass::getModel();
+            $modelInstance = new $modelClass(); // ✅ Instanziieren
+            $table = $modelInstance->getTable(); // ✅ Aufrufen
+            #echo $tableName;
+        }
+
+        // Prüfen, ob es sich um einen RelationManager-Eintrag handelt
+        /* if (str_contains($resourceClass, '::')) {
+            [$relationName, $table] = explode('::', $resourceClass, 2);
+        } else {
+            $table = $tableName;
+        } */
+
+        if (!Schema::hasTable($table)) {
+            return [];
+        }
+
+        return collect(Schema::getColumnListing($table))
+            ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
+            ->toArray();
     }
 
     public static function getNavigationGroups(){
