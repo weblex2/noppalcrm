@@ -102,14 +102,14 @@ class AdminPanelProvider extends PanelProvider
                 $navigation_icon = $filter['icon'] ?? 'heroicon-o-rectangle-stack';
                 $navigation_label = $filter['label'] ?? Str::studly($filter['resource']) ." -> ".$filter->value;
                 $navItem = NavigationItem::make($name);
-                $navItem->url(function () use ($resourceClass, $filterKey, $filter): string {
+                $navItem->url(function () use ($resourceClass, $filter): string {
                     if (
                         class_exists($resourceClass)
                         && method_exists($resourceClass, 'getUrl')
                     ) {
                         return $resourceClass::getUrl('index', [
                             'tableFilters' => [
-                                $filter['field'] => ['value' => $filterKey],
+                                $filter->field => ['value' => $filter->key],
                             ],
                         ]);
                     }
