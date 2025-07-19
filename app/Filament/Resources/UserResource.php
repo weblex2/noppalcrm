@@ -17,6 +17,8 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    protected static ?string $recordTitleAttribute = "email";
+
     public static function getNavigationLabel(): string
     {
         $resourceName = class_basename(static::class); // z. B. ResourceConfigResource
