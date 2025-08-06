@@ -57,7 +57,8 @@ class FilamentConfigResource extends Resource
                                 'navlink' => 'Navigation Link',
                                 'option' => 'Option',
                                 'filter' => 'Filter',
-                                'section' => 'Section', 
+                                'section' => 'Section',
+                                'blubb' => 'Blubb',
                             ])
                 ]),
                 Forms\Components\Section::make('Navigation Links')
