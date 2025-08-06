@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('resource_configs', function (Blueprint $table) {
+        Schema::table('filament_configs', function (Blueprint $table) {
             $table->integer('section_nr')->nullable(0)->after('field');
             $table->string('section_name')->nullable(0)->after('section_nr');
             $table->boolean('is_repeater')->nullable(0)->after('section_name');
@@ -24,7 +24,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('resource_configs', function (Blueprint $table) {
+        Schema::table('filament_configs', function (Blueprint $table) {
             $table->dropColumn('section_nr');
             $table->dropColumn('section_name');
             $table->dropColumn('is_repeater');
