@@ -151,6 +151,7 @@ class ResourceConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_sort'),
                 ]
             )
+            ->persistFiltersInSession()
             ->filters([
                 SelectFilter::make('resource')
                     ->options(FilamentController::getResourcesDropdown()),
