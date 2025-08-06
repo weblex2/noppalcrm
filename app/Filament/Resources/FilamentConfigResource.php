@@ -16,7 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-
+use App\View\Components\Forms\Components\HeroiconPicker;
 
 class FilamentConfigResource extends Resource
 {
@@ -71,7 +71,8 @@ class FilamentConfigResource extends Resource
                         Forms\Components\Select::make('field')
                              ->options(fn (callable $get) => array_filter(FilamentController::getResourcesFieldDropdown($get('resource')), fn($label) => $label !== null && $label !== '')),
                         Forms\Components\TextInput::make('key')
-                            ->required()
+                            ->required(fn (\Closure $get) => $get('type') === 'filter')
+                            ->default(0)
                             ->maxLength(191),
                         Forms\Components\TextInput::make('value')
                             ->required()
@@ -82,6 +83,16 @@ class FilamentConfigResource extends Resource
                         Forms\Components\TextInput::make('navigation_label'),
                         Forms\Components\TextInput::make('section_name'),
                         Forms\Components\TextInput::make('icon'),
+                        HeroiconPicker::make('icon')
+                            ->label('Icon auswählen')
+                            ->icons([
+                                'heroicon-o-user',
+                                'heroicon-o-home',
+                                'heroicon-o-document',
+                                'heroicon-o-cog',
+                                'heroicon-o-archive',
+                                // usw. (du kannst hier alle verfügbaren Heroicons eintragen)
+                            ])
 
                         ])
                         ->columns(4)
@@ -117,15 +128,19 @@ class FilamentConfigResource extends Resource
 
                 Forms\Components\Section::make('Section')
                     ->schema([
-                       Forms\Components\Toggle::make('repeater')->columnSpan(4),
+                       Forms\Components\Toggle::make('is_repeater')->columnSpan(4),
                        Forms\Components\Select::make('resource')
                             ->required()
                             ->options(function () {
                                 return FilamentController::getResourcesDropdown(false,false);
                             }),
 
-                       Forms\Components\TextInput::make('nr')->numeric(),
+                       Forms\Components\TextInput::make('section_nr'),
                        Forms\Components\TextInput::make('section_name'),
+                       Forms\Components\Select::make('repeats_resource')
+                            ->options(function () {
+                                return FilamentController::getResourcesDropdown(false,false);
+                            }),
                     ])
                  ->columns(4)
                  ->visible(fn ($get) => $get('type') === 'section')
@@ -149,6 +164,10 @@ class FilamentConfigResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('field')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('section_nr')->label('Section Nr'),
+                Tables\Columns\TextColumn::make('section_name')->label('Section Name'),
+                Tables\Columns\IconColumn::make('is_repeater')->boolean()->label('Is Repeater'),
+                Tables\Columns\TextColumn::make('repeats_resource')->label('Repeats Ressource'),
                 Tables\Columns\TextColumn::make('key')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('value')
@@ -160,6 +179,7 @@ class FilamentConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('icon'),
 
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -169,6 +189,7 @@ class FilamentConfigResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->persistFiltersInSession()
             ->filters([
                 SelectFilter::make('resource')
                     ->options(function () {

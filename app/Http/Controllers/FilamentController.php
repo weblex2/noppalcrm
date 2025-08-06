@@ -14,9 +14,12 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Filament\Navigation\NavigationItem;
+
 
 class FilamentController extends Controller
 {
+
     function checkIfRelationExists(array $config): bool
     {
         $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
@@ -230,7 +233,7 @@ class FilamentController extends Controller
         }
 
         $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
-
+        $table = null;
         if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
             $modelClass = $fullClass::getModel();
             $modelInstance = new $modelClass(); // ✅ Instanziieren
@@ -261,5 +264,48 @@ class FilamentController extends Controller
                         ->orderBy('navigation_group')
                         ->pluck('navigation_group', 'navigation_group')
                         ->toArray();
+    }
+
+    public static function getNavigationLinks(){
+        $filters = [];
+        $filters = FilamentConfig::where('type','navlink')->orderBy('order', 'asc')->get();
+        $navItems = [];
+        foreach ($filters as $i => $filter){
+            $name = ucfirst($filter->value);
+            $resourceName = Str::studly(Str::singular($filter['resource']))."Resource";
+            $resourceName = $filter['resource'];
+            $resourceClass = "App\\Filament\\Resources\\{$resourceName}";
+
+            if (class_exists($resourceClass)) {
+                $navigation_group = $filter['navigation_group'];
+                $navigation_icon = $filter['icon'] ?? 'heroicon-o-rectangle-stack';
+                $navigation_label = $filter['navigation_label'] ?? Str::studly($filter['resource']) ." -> ".$filter->value;
+                $navItem = NavigationItem::make($name);
+                $navItem->url(function () use ($resourceClass, $filter): string {
+                    if (
+                        class_exists($resourceClass)
+                        && method_exists($resourceClass, 'getUrl')
+                    ) {
+                        return $resourceClass::getUrl('index', [
+                            'tableFilters' => [
+                                $filter->field => ['value' => $filter->key],
+                            ],
+                        ]);
+                    }
+
+                    return '#'; // Kein valider Link → kein Fehler in Navigation
+                })
+                ->icon($navigation_icon)
+                ->label($navigation_label)
+                ->sort($filter['order'])
+                ->group($navigation_group);
+                //->badge($counts[$filter] ?? 0);
+                $navItems[] = $navItem;
+            }
+            else{
+                \Log::channel('crm')->info('Error in Navlinks: Resource '. $resourceClass ." does not exist!");
+            }
+        }
+        return $navItems;
     }
 }

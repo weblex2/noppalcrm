@@ -15,6 +15,7 @@ use App\Models\Section;
 use App\Models\FilamentAction;
 use App\Models\ResourceConfig;
 use Filament\Tables\Actions;
+use Filament\Forms\Components\Actions\Action;
 
 class FilamentFieldsController extends Controller
 {
@@ -71,14 +72,15 @@ class FilamentFieldsController extends Controller
                 $sectionLabel = Section::where('resource', $this->tableName)
                     ->where('num', $sectionId)
                     ->value('label') ?? ('Section ' . $sectionId);
-
+                $section_config = FilamentConfig::where('resource', $this->tableName)
+                    ->where('section_nr', $sectionId)->first();
                 $fieldSchemas = $sectionFields->map(function ($field) {
                     return $this->getField($field);
                 })->toArray();
 
                 // Felder für den aktuellen Abschnitt filtern
                 $sectionFields = $groupFields->where('section', $sectionId);
-
+                $sectionConfig = FilamentConfig::where('resource',$this->tableName)->where('type','section')->get();
                 // Felder in das Schema umwandeln (hier ein Platzhalter, passe dies an deine Felder an)
                 $fieldSchemas = $sectionFields->map(function ($field) {
                     return $this->getField($field);
@@ -86,15 +88,16 @@ class FilamentFieldsController extends Controller
 
                 // Abschnitt erstellen
                 if ($isWizard){
-                    if ($sectionId!==2){
+                    if (!isset($section_config) || $section_config->is_repeater !== 1) {
                         $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
                         ->schema($fieldSchemas)
                         ->columns(3); // Optional: Anzahl der Spalten
                     }
                     else {
-                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
+                        $sections[] = Forms\Components\Wizard\Step::make($section_config->section_name)
                             ->schema([
-                                Forms\Components\Repeater::make($sectionLabel)
+                                Forms\Components\Repeater::make($section_config->repeats_resource)
+                                    ->relationship()
                                     ->schema($fieldSchemas)
                                     ->columns(3) // Optional: Anzahl der Spalten
                             ]);
