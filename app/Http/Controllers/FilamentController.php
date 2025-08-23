@@ -252,30 +252,39 @@ class FilamentController extends Controller
             return [];
         }
 
-        $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
-        $table = null;
-        if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
-            $modelClass = $fullClass::getModel();
-            $modelInstance = new $modelClass(); // ✅ Instanziieren
-            $table = $modelInstance->getTable(); // ✅ Aufrufen
-            #echo $tableName;
+        // Prüfen, ob es sich um einen RelationManager handelt
+        if (str_contains($resourceClass, '::')) {
+            [$resourceClass, $relationName] = explode('::', $resourceClass, 2);
+        } else {
+            $relationName = null;
         }
 
-        // Prüfen, ob es sich um einen RelationManager-Eintrag handelt
-        /* if (str_contains($resourceClass, '::')) {
-            [$relationName, $table] = explode('::', $resourceClass, 2);
-        } else {
-            $table = $tableName;
-        } */
+        $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
+        $table = null;
 
-        if (!Schema::hasTable($table)) {
+        if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
+            $modelClass = $fullClass::getModel();
+            $modelInstance = new $modelClass();
+
+            if ($relationName && method_exists($modelInstance, $relationName)) {
+                $relation = $modelInstance->{$relationName}();
+                if ($relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                    $table = $relation->getRelated()->getTable();
+                }
+            } else {
+                $table = $modelInstance->getTable();
+            }
+        }
+
+        if (!$table || !Schema::hasTable($table)) {
             return [];
         }
 
         return collect(Schema::getColumnListing($table))
-            ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
+            ->mapWithKeys(fn ($column) => [$column => $column])
             ->toArray();
     }
+
 
     public static function getNavigationGroups(){
         return ['' => '<none>'] + DB::table('resource_configs')
