@@ -323,7 +323,8 @@ class TableFieldsResource extends Resource
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ;
     }
 
     public static function query(Builder $query): Builder
@@ -432,6 +433,8 @@ class TableFieldsResource extends Resource
             ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
             ->toArray();
     }
+
+    
 
 
     public static function mutateFormDataBeforeSave(array $data): array
