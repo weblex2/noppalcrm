@@ -85,8 +85,13 @@ class TableFieldsResource extends Resource
                         Forms\Components\Toggle::make('disabled')->columnSpan(2),
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
-                            ->options(function () {
-                                return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
+                            ->options(function (callable $get) {
+                                $tableOrResource = $get('table');
+                                if (!$tableOrResource) {
+                                    return [];
+                                }
+
+                                return FilamentController::getResourcesDropdown($tableOrResource);
                             })
                             ->required()
                             ->reactive() // wichtig für Reaktivität
@@ -99,7 +104,7 @@ class TableFieldsResource extends Resource
                             ->disabled(function (callable $get, string $context) {
                                 return $context === 'edit' || ! $get('table');
                             })
-                            ->options(fn (callable $get) => array_filter(self::getFieldOptions($get('table')), fn($label) => $label !== null && $label !== ''))
+                            ->options(fn (callable $get) => array_filter(FilamentController::getResourcesFieldDropdown($get('table')), fn($label) => $label !== null && $label !== ''))
                             ->disabled(fn (callable $get) => ! $get('table'))
                             ->dehydrated(),
 
