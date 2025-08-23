@@ -73,7 +73,7 @@ class TableFieldsResource extends Resource
                             ->helperText('Form or Table?')
                             ->default(false)  // ← Standardwert setzen
                             ->live()
-                            //->disabled(fn (string $context) => $context === 'edit' && request()->get('duplicate') !== '1')
+                            ->disabled(fn (string $context) => $context === 'edit' && request()->get('duplicate') !== '1')
                             //->dehydrated(fn (string $context) => $context === 'create' && request()->get('duplicate') == '1')
                             ->dehydrated()
                             ->afterStateUpdated(fn ($state) => info('form-Toggle: ' . var_export($state, true))),
@@ -90,7 +90,7 @@ class TableFieldsResource extends Resource
                             })
                             ->required()
                             ->reactive() // wichtig für Reaktivität
-                            ->disabled(fn (string $context) => $context === 'edit')
+                            //->disabled(fn (string $context) => $context === 'edit')
                             ->dehydrated(),
                          Forms\Components\Select::make('field')
                             ->label('Feld')
