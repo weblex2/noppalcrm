@@ -52,7 +52,7 @@ class FilamentFieldsController extends Controller
 
         // Eindeutige Gruppen (Groups) ermitteln
         $groupIds = $tableFields->pluck('group')->unique();
-        $isWizard = ResourceConfig::where('resource', 'QuoteResource')->value('is_wizard');
+        $isWizard = ResourceConfig::where('resource', $this->tableName)->value('is_wizard');
         // Struktur aufbauen
         $groups = [];
 
@@ -61,7 +61,7 @@ class FilamentFieldsController extends Controller
             $groupFields = $tableFields->where('group', $groupId);
 
             // Eindeutige Abschnitte (Sections) für die aktuelle Gruppe ermitteln
-            $sectionIds = $groupFields->pluck('section')->unique();
+            $sectionIds = $groupFields->pluck('section')->unique()->sort();
 
             $sections = [];
             foreach ($sectionIds as  $sectionId) {
@@ -81,25 +81,29 @@ class FilamentFieldsController extends Controller
                 // Felder für den aktuellen Abschnitt filtern
                 $sectionFields = $groupFields->where('section', $sectionId);
                 $sectionConfig = FilamentConfig::where('resource',$this->tableName)->where('type','section')->get();
-                // Felder in das Schema umwandeln (hier ein Platzhalter, passe dies an deine Felder an)
+                $sectionLabel  = $section_config->section_name ?? "Section ".$sectionId;
+
+
                 $fieldSchemas = $sectionFields->map(function ($field) {
                     return $this->getField($field);
                 })->toArray();
 
                 // Abschnitt erstellen
                 if ($isWizard){
+
+                    //$sectionFields = $groupFields->where('section', $sectionId);
+                    $modalFunctionName = FilamentController::getModelFunctionName($section_config->repeats_resource);
                     if (!isset($section_config) || $section_config->is_repeater !== 1) {
                         $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
-                        ->schema($fieldSchemas)
-                        ->columns(3); // Optional: Anzahl der Spalten
-                    }
-                    else {
-                        $sections[] = Forms\Components\Wizard\Step::make($section_config->section_name)
+                            ->schema($fieldSchemas)
+                            ->columns(3);
+                    } else {
+                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
                             ->schema([
-                                Forms\Components\Repeater::make($section_config->repeats_resource)
+                                Forms\Components\Repeater::make($modalFunctionName)
                                     ->relationship()
                                     ->schema($fieldSchemas)
-                                    ->columns(3) // Optional: Anzahl der Spalten
+                                    ->columns(3)
                             ]);
                     }
                 }
