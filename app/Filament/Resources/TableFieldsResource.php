@@ -73,7 +73,7 @@ class TableFieldsResource extends Resource
                             ->helperText('Form or Table?')
                             ->default(false)  // ← Standardwert setzen
                             ->live()
-                            ->disabled(fn (string $context) => $context === 'edit' && request()->get('duplicate') !== '1')
+                            //->disabled(fn (string $context) => $context === 'edit' && request()->get('duplicate') !== '1')
                             //->dehydrated(fn (string $context) => $context === 'create' && request()->get('duplicate') == '1')
                             ->dehydrated()
                             ->afterStateUpdated(fn ($state) => info('form-Toggle: ' . var_export($state, true))),
@@ -434,7 +434,7 @@ class TableFieldsResource extends Resource
             ->toArray();
     }
 
-    
+
 
 
     public static function mutateFormDataBeforeSave(array $data): array
