@@ -6,7 +6,7 @@ use App\Filament\Resources\FilamentConfigResource\Pages;
 use App\Filament\Resources\FilamentConfigResource\RelationManagers;
 use App\Http\Controllers\FilamentController;
 use App\Models\FilamentConfig;
-use App\Models\TableFields;
+use App\Models\TableField;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -58,7 +58,6 @@ class FilamentConfigResource extends Resource
                                 'option' => 'Option',
                                 'filter' => 'Filter',
                                 'section' => 'Section',
-                                'blubb' => 'Blubb',
                             ])
                 ]),
                 Forms\Components\Section::make('Navigation Links')
@@ -195,7 +194,7 @@ class FilamentConfigResource extends Resource
                 SelectFilter::make('resource')
                     ->options(function () {
                          // Hole alle distinct "table" Werte aus der Tabelle
-                        $options = TableFields::select('table')
+                        $options = TableField::select('table')
                             ->distinct()
                             ->pluck('table', 'table')
                             ->toArray();
