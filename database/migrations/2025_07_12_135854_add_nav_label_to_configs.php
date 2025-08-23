@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('filament_configs', function (Blueprint $table) {
-            $table->string('navigation_label')->nullable()->after('order');
+            $table->string('navigation_label')->nullable()->after('order')->default(true);
         });
     }
 
