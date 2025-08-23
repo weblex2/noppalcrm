@@ -343,6 +343,7 @@ class MakeCustomFilamentResourceCommand extends Command
             ...$this->generateModel($model, $modelNamespace, $modelClass),
             'namespace' => $namespace,
             'table' => $table,
+            'resourceKey' => $resourceClass,
             'pages' => $this->indentString($pages, 3),
             'relations' => $this->indentString($relations, 1),
             'resource' => "{$namespace}\\{$resourceClass}",
