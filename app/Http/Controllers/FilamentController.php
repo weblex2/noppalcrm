@@ -20,12 +20,31 @@ use Filament\Navigation\NavigationItem;
 class FilamentController extends Controller
 {
 
-    function checkIfRelationExists(array $config): bool
+    public static function getModelFunctionName($resource){
+        $funcName =  Str::of($resource)->replaceLast('Resource', '')->plural()->snake()->value();
+        return $funcName;
+    }
+
+    public static function getTableNameFromResource($resource)
+    {
+        // "ContactPersonResource" -> "ContactPerson"
+        $base = Str::beforeLast(class_basename($resource), 'Resource');
+
+        // snake_case + pluralisieren
+        return Str::plural(Str::snake($base));
+    }
+
+    public function checkIfRelationExists(array $config): bool
     {
         $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
         $targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
         $relationType = $config['method'];
-        $relationName = $config['relation_name'];
+        $relationName = Str::plural($config['relation_name']);
+
+        /* if ($config['method']=='HasMany'){
+            $sourceClass = "\\App\\Models\\" . Str::studly(Str::singular($config['target']));
+            $targetClass = "\\App\\Models\\" . Str::studly(Str::singular($config['source']));
+        } */
 
         if (!$this->traitExists(Str::singular($config['source']))){
             $this->generateTrait(Str::singular($config['source']));
@@ -158,7 +177,8 @@ class FilamentController extends Controller
             $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
             $key = Str::studly($table) . 'Resource';
 
-            $tables[$key] = $label;
+            //$tables[$key] = $label;
+            $tables[$key] = $key;
 
             // RelationManagers einbeziehen
             if ($incRelMan){
