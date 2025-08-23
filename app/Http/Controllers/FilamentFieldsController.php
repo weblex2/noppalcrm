@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use App\Models\TableFields;
+use App\Models\TableField;
 use App\Models\FilamentConfig;
 use App\Filament\Resources\CustomerResource;
 use Illuminate\Http\Request;
@@ -45,7 +45,7 @@ class FilamentFieldsController extends Controller
     }
 
     public function getSchema(){
-        $tableFields = TableFields::where('table', '=', $this->tableName)
+        $tableFields = TableField::where('table', '=', $this->tableName)
             ->where('form', '=', $this->isForm)
             ->orderBy('order', 'ASC')
             ->get();
@@ -134,7 +134,7 @@ class FilamentFieldsController extends Controller
 
     public function getTableFields(){
         $fields = [];
-        $tableFields = TableFields::where('table',"=", $this->tableName)
+        $tableFields = TableField::where('table',"=", $this->tableName)
                                      ->where('form',"=",$this->isForm)
                                      ->orderBy('order', 'ASC')
                                      ->get();
