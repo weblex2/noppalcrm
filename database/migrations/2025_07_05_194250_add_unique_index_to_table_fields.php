@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('table_fields', function (Blueprint $table) {
-            $table->unique(['form', 'table', 'field'], 'table_fields_form_table_field_unique');
+        $table->string('form', 1)->change();
+        $table->string('table', 100)->change();
+        $table->string('field', 100)->change();
+            #$table->unique(['form', 'table', 'field'], 'table_fields_form_table_field_unique');
         });
     }
 
