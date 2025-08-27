@@ -70,11 +70,11 @@ class {{ resourceClass }} extends Resource
 
     public static function table(Table $table): Table
     {
-        $fc = new FilamentFieldsController('{{table}}',0);
+        $fc = new FilamentFieldsController('{{ resourceKey }}',0);
         $tableFields = $fc->getTableFields() ?? [];
 
         // Dynamische Filter generieren
-        $tableFilters = FilamentController::getTableFilter('{{table}}');
+        $tableFilters = FilamentController::getTableFilter('{{ resourceKey }}');
 
         return $table
             ->columns($tableFields)
@@ -102,7 +102,7 @@ class {{ resourceClass }} extends Resource
                     ->icon('heroicon-o-plus-circle')
                     ->modalContent(function ($record) {
                         return view('filament.actions.add-db-field-modal', [
-                            'tableName' => '{{table}}',
+                            'tableName' => '{{ resourceKey }}',
                         ]);
                     })
                     ->modalSubmitAction(false)

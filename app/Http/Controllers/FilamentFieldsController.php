@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
-use App\Models\TableFields;
+use App\Models\TableField;
 use App\Models\FilamentConfig;
 use App\Filament\Resources\CustomerResource;
 use Illuminate\Http\Request;
@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Filament\Tables\Columns\DateTimeColumn;
 use App\Models\Section;
 use App\Models\FilamentAction;
+use App\Models\ResourceConfig;
 use Filament\Tables\Actions;
+use Filament\Forms\Components\Actions\Action;
 
 class FilamentFieldsController extends Controller
 {
@@ -43,14 +45,14 @@ class FilamentFieldsController extends Controller
     }
 
     public function getSchema(){
-        $tableFields = TableFields::where('table', '=', $this->tableName)
+        $tableFields = TableField::where('table', '=', $this->tableName)
             ->where('form', '=', $this->isForm)
             ->orderBy('order', 'ASC')
             ->get();
 
         // Eindeutige Gruppen (Groups) ermitteln
         $groupIds = $tableFields->pluck('group')->unique();
-
+        $isWizard = ResourceConfig::where('resource', $this->tableName)->value('is_wizard');
         // Struktur aufbauen
         $groups = [];
 
@@ -59,10 +61,10 @@ class FilamentFieldsController extends Controller
             $groupFields = $tableFields->where('group', $groupId);
 
             // Eindeutige Abschnitte (Sections) für die aktuelle Gruppe ermitteln
-            $sectionIds = $groupFields->pluck('section')->unique();
+            $sectionIds = $groupFields->pluck('section')->unique()->sort();
 
             $sections = [];
-            foreach ($sectionIds as $sectionId) {
+            foreach ($sectionIds as  $sectionId) {
 
                 $sectionFields = $groupFields->where('section', $sectionId);
 
@@ -70,30 +72,61 @@ class FilamentFieldsController extends Controller
                 $sectionLabel = Section::where('resource', $this->tableName)
                     ->where('num', $sectionId)
                     ->value('label') ?? ('Section ' . $sectionId);
-
+                $section_config = FilamentConfig::where('resource', $this->tableName)
+                    ->where('section_nr', $sectionId)->first();
                 $fieldSchemas = $sectionFields->map(function ($field) {
                     return $this->getField($field);
                 })->toArray();
 
                 // Felder für den aktuellen Abschnitt filtern
                 $sectionFields = $groupFields->where('section', $sectionId);
+                $sectionConfig = FilamentConfig::where('resource',$this->tableName)->where('type','section')->get();
+                $sectionLabel  = $section_config->section_name ?? "Section ".$sectionId;
 
-                // Felder in das Schema umwandeln (hier ein Platzhalter, passe dies an deine Felder an)
+
                 $fieldSchemas = $sectionFields->map(function ($field) {
                     return $this->getField($field);
                 })->toArray();
 
                 // Abschnitt erstellen
+                if ($isWizard){
+
+                    //$sectionFields = $groupFields->where('section', $sectionId);
+                    $modalFunctionName = FilamentController::getModelFunctionName($section_config->repeats_resource);
+                    if (!isset($section_config) || $section_config->is_repeater !== 1) {
+                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
+                            ->schema($fieldSchemas)
+                            ->columns(3);
+                    } else {
+                        $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
+                            ->schema([
+                                Forms\Components\Repeater::make($modalFunctionName)
+                                    ->relationship()
+                                    ->schema($fieldSchemas)
+                                    ->columns(3)
+                            ]);
+                    }
+                }
+                else{
                 $sections[] = Forms\Components\Section::make($sectionLabel)
                     ->schema($fieldSchemas)
                     ->columns(3) // Optional: Anzahl der Spalten
                     ->collapsible();
+                }
             }
 
+
+            if ($isWizard){
+                $groups[] = Forms\Components\Wizard::make()
+                ->schema($sections)
+                ->columnSpan('full'); // Optional: Vollständige Breite
+            }
+            else{
             // Gruppe erstellen
             $groups[] = Forms\Components\Group::make()
                 ->schema($sections)
                 ->columnSpan('full'); // Optional: Vollständige Breite
+            }
         }
         //dd($groups);
         return $groups;
@@ -101,7 +134,7 @@ class FilamentFieldsController extends Controller
 
     public function getTableFields(){
         $fields = [];
-        $tableFields = TableFields::where('table',"=", $this->tableName)
+        $tableFields = TableField::where('table',"=", $this->tableName)
                                      ->where('form',"=",$this->isForm)
                                      ->orderBy('order', 'ASC')
                                      ->get();

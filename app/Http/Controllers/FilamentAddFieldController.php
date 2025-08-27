@@ -4,7 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use App\Models\TableFields;
+use App\Models\TableField;
+use Illuminate\Support\Str;
 
 class FilamentAddFieldController extends Controller
 {
@@ -31,7 +32,7 @@ class FilamentAddFieldController extends Controller
             }
 
             // Create Field in Table Fields
-            $maxOrder = TableFields::where('table', $field['tablename'])->max('order') ?? 0;
+            $maxOrder = TableField::where('table', $field['tablename'])->max('order') ?? 0;
             $newfield = [
                 'form' => 0,
                 'user_id' => 0,
@@ -42,9 +43,9 @@ class FilamentAddFieldController extends Controller
                 'order' => $maxOrder+10,
             ];
             try{
-                TableFields::create($newfield);
+                TableField::create($newfield);
                 $newfield['form']=1;
-                TableFields::create($newfield);
+                TableField::create($newfield);
             } catch (\Exception $e){
                 $result['output'] .="<br>Felder gibt es schon - werden nicht doppelt angelegt.";
                 $result['output'] .="<br>".$e->getMessage();
@@ -59,13 +60,14 @@ class FilamentAddFieldController extends Controller
     }
     private static function createMigrationFile(array $field)
     {
-        $table = $field['tablename']; // z. B. von der Resource ableiten
+        $table = FilamentController::getTableNameFromResource($field['tablename']); // z. B. von der Resource ableiten
 
         $migrationName = 'add_' . $field['name'] . '_to_' . $table . '_table';
 
         $migrationCommand = 'make:migration ' . $migrationName . ' --table=' . $table;
         Artisan::call($migrationCommand);
 
+        $migrationName = Str::snake($migrationName);
         // Migration anpassen
         $path = collect(glob(database_path('migrations/*.php')))
             ->filter(fn ($f) => str_contains($f, $migrationName))

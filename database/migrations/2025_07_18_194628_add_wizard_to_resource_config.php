@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('filament_configs', function (Blueprint $table) {
-            $table->string('navigation_label')->nullable()->after('order')->default(true);
+        Schema::table('resource_configs', function (Blueprint $table) {
+            $table->boolean('is_wizard')->default(0)->after('navigation_group');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('configs', function (Blueprint $table) {
-            $table->dropColumn('navigation_label');
+        Schema::table('resource_configs', function (Blueprint $table) {
+            $table->dropColumn('is_wizard');
         });
     }
 };

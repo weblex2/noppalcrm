@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Filament\Forms\Components\ColorPicker;
 use App\Http\Controllers\FilamentController;
+use Filament\Tables\Enums\ActionsPosition;
 
 class TableFieldsResource extends Resource
 {
@@ -44,6 +45,8 @@ class TableFieldsResource extends Resource
         $resourceName = class_basename(static::class);
         return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? 'Configuration';
     }
+
+    protected static ?string $recordTitleAttribute = "table";
 
     protected static function getTitle(){
         return "Edit Fields";
@@ -82,12 +85,17 @@ class TableFieldsResource extends Resource
                         Forms\Components\Toggle::make('disabled')->columnSpan(2),
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
-                            ->options(function () {
-                                return array_filter(self::getTableOptions(), fn($label) => $label !== null && $label !== '');
+                            ->options(function (callable $get) {
+                                $tableOrResource = $get('table');
+                                if (!$tableOrResource) {
+                                    return [];
+                                }
+
+                                return FilamentController::getResourcesDropdown($tableOrResource);
                             })
                             ->required()
                             ->reactive() // wichtig für Reaktivität
-                            ->disabled(fn (string $context) => $context === 'edit')
+                            //->disabled(fn (string $context) => $context === 'edit')
                             ->dehydrated(),
                          Forms\Components\Select::make('field')
                             ->label('Feld')
@@ -96,7 +104,7 @@ class TableFieldsResource extends Resource
                             ->disabled(function (callable $get, string $context) {
                                 return $context === 'edit' || ! $get('table');
                             })
-                            ->options(fn (callable $get) => array_filter(self::getFieldOptions($get('table')), fn($label) => $label !== null && $label !== ''))
+                            ->options(fn (callable $get) => array_filter(FilamentController::getResourcesFieldDropdown($get('table')), fn($label) => $label !== null && $label !== ''))
                             ->disabled(fn (callable $get) => ! $get('table'))
                             ->dehydrated(),
 
@@ -248,7 +256,7 @@ class TableFieldsResource extends Resource
                 Tables\Columns\IconColumn::make('required')
                     ->boolean()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('bgcolor')
+                Tables\Columns\ColorColumn::make('bgcolor')
             ])
             ->persistFiltersInSession()
             ->recordAction(Tables\Actions\EditAction::class)
@@ -282,42 +290,46 @@ class TableFieldsResource extends Resource
                     }),
             ])
             ->actions([
-                 Tables\Actions\EditAction::make()
-                    ->modalHeading('Feld bearbeiten')
-                    ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
-                    //->slideOver()
-                    ->mutateFormDataUsing(function (array $data) {
-                        if ($data['type'] === 'relation') {
-                            $config['source'] = $data['table'];
-                            $config['target'] = $data['relation_table'];
-                            $config['method'] = 'BelongsTo';
-                            $config['field'] = $data['field'];
-                            $config['relation_name'] = $data['relation_table'];
+                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make()->color('primary'),
+                    Tables\Actions\EditAction::make()
+                        ->color('primary')
+                        ->modalHeading('Feld bearbeiten')
+                        ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
+                        //->slideOver()
+                        ->mutateFormDataUsing(function (array $data) {
+                            if ($data['type'] === 'relation') {
+                                $config['source'] = $data['table'];
+                                $config['target'] = $data['relation_table'];
+                                $config['method'] = 'BelongsTo';
+                                $config['field'] = $data['field'];
+                                $config['relation_name'] = $data['relation_table'];
 
-                            app(FilamentController::class)->checkIfRelationExists($config);
-                        }
+                                app(FilamentController::class)->checkIfRelationExists($config);
+                            }
 
-                        return $data;
-                    }),
-                Tables\Actions\Action::make('duplicate')
+                            return $data;
+                        }),
+                    Tables\Actions\Action::make('duplicate')
                     ->label('Duplizieren')
                     ->icon('heroicon-o-document-duplicate')
                     ->action(function ($record, $data, $livewire) {
                         $params = $record->toArray();
                         unset($params['id']);
                         $params['label'] .= ' (Kopie)';
-
                         // Umleiten auf Create-Seite mit den Daten als Query-Parameter
                         return redirect(route('filament.admin.resources.table-fields.create', ['duplicate_data' => json_encode($params)]));
                     })
-            ])
+                ])
+            ], position: Tables\Enums\ActionsPosition::AfterColumns)
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                     Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\RestoreBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ;
     }
 
     public static function query(Builder $query): Builder
@@ -426,6 +438,8 @@ class TableFieldsResource extends Resource
             ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
             ->toArray();
     }
+
+
 
 
     public static function mutateFormDataBeforeSave(array $data): array

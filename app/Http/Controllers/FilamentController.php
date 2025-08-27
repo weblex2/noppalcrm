@@ -13,17 +13,38 @@ use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Schema;
+use Filament\Navigation\NavigationItem;
 
 
 class FilamentController extends Controller
 {
-    function checkIfRelationExists(array $config): bool
+
+    public static function getModelFunctionName($resource){
+        $funcName =  Str::of($resource)->replaceLast('Resource', '')->plural()->snake()->value();
+        return $funcName;
+    }
+
+    public static function getTableNameFromResource($resource)
+    {
+        // "ContactPersonResource" -> "ContactPerson"
+        $base = Str::beforeLast(class_basename($resource), 'Resource');
+
+        // snake_case + pluralisieren
+        return Str::plural(Str::snake($base));
+    }
+
+    public function checkIfRelationExists(array $config): bool
     {
         $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
         $targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
         $relationType = $config['method'];
-        $relationName = $config['relation_name'];
+        $relationName = Str::plural($config['relation_name']);
+
+        /* if ($config['method']=='HasMany'){
+            $sourceClass = "\\App\\Models\\" . Str::studly(Str::singular($config['target']));
+            $targetClass = "\\App\\Models\\" . Str::studly(Str::singular($config['source']));
+        } */
 
         if (!$this->traitExists(Str::singular($config['source']))){
             $this->generateTrait(Str::singular($config['source']));
@@ -156,7 +177,8 @@ class FilamentController extends Controller
             $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
             $key = Str::studly($table) . 'Resource';
 
-            $tables[$key] = $label;
+            //$tables[$key] = $label;
+            $tables[$key] = $key;
 
             // RelationManagers einbeziehen
             if ($incRelMan){
@@ -224,6 +246,46 @@ class FilamentController extends Controller
         return $tables;
     }
 
+    public static function getResourcesFieldDropdown(?string $resourceClass): array
+    {
+        if (!$resourceClass) {
+            return [];
+        }
+
+        // Prüfen, ob es sich um einen RelationManager handelt
+        if (str_contains($resourceClass, '::')) {
+            [$resourceClass, $relationName] = explode('::', $resourceClass, 2);
+        } else {
+            $relationName = null;
+        }
+
+        $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
+        $table = null;
+
+        if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
+            $modelClass = $fullClass::getModel();
+            $modelInstance = new $modelClass();
+
+            if ($relationName && method_exists($modelInstance, $relationName)) {
+                $relation = $modelInstance->{$relationName}();
+                if ($relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
+                    $table = $relation->getRelated()->getTable();
+                }
+            } else {
+                $table = $modelInstance->getTable();
+            }
+        }
+
+        if (!$table || !Schema::hasTable($table)) {
+            return [];
+        }
+
+        return collect(Schema::getColumnListing($table))
+            ->mapWithKeys(fn ($column) => [$column => $column])
+            ->toArray();
+    }
+
+
     public static function getNavigationGroups(){
         return ['' => '<none>'] + DB::table('resource_configs')
                         ->whereNotNull('navigation_group')
@@ -231,5 +293,48 @@ class FilamentController extends Controller
                         ->orderBy('navigation_group')
                         ->pluck('navigation_group', 'navigation_group')
                         ->toArray();
+    }
+
+    public static function getNavigationLinks(){
+        $filters = [];
+        $filters = FilamentConfig::where('type','navlink')->orderBy('order', 'asc')->get();
+        $navItems = [];
+        foreach ($filters as $i => $filter){
+            $name = ucfirst($filter->value);
+            $resourceName = Str::studly(Str::singular($filter['resource']))."Resource";
+            $resourceName = $filter['resource'];
+            $resourceClass = "App\\Filament\\Resources\\{$resourceName}";
+
+            if (class_exists($resourceClass)) {
+                $navigation_group = $filter['navigation_group'];
+                $navigation_icon = $filter['icon'] ?? 'heroicon-o-rectangle-stack';
+                $navigation_label = $filter['navigation_label'] ?? Str::studly($filter['resource']) ." -> ".$filter->value;
+                $navItem = NavigationItem::make($name);
+                $navItem->url(function () use ($resourceClass, $filter): string {
+                    if (
+                        class_exists($resourceClass)
+                        && method_exists($resourceClass, 'getUrl')
+                    ) {
+                        return $resourceClass::getUrl('index', [
+                            'tableFilters' => [
+                                $filter->field => ['value' => $filter->key],
+                            ],
+                        ]);
+                    }
+
+                    return '#'; // Kein valider Link → kein Fehler in Navigation
+                })
+                ->icon($navigation_icon)
+                ->label($navigation_label)
+                ->sort($filter['order'])
+                ->group($navigation_group);
+                //->badge($counts[$filter] ?? 0);
+                $navItems[] = $navItem;
+            }
+            else{
+                \Log::channel('crm')->info('Error in Navlinks: Resource '. $resourceClass ." does not exist!");
+            }
+        }
+        return $navItems;
     }
 }
