@@ -10,20 +10,42 @@ use Filament\Notifications\Notification;
 
 class LogViewer extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static string $view = 'filament.pages.log-viewer';
-    protected static ?string $navigationGroup = 'Configuration';
-    protected static ?string $navigationLabel = 'Logs';
+
+
+    public static function getNavigationLabel(): string
+    {
+        $resourceName = "Page::".class_basename(static::class); // z. B. ResourceConfigResource
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_label') ?? "Logs";
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        $resourceName = "Page::".class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_group') ?? "Configuration";
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        $resourceName = "Page::".class_basename(static::class); // ergibt z. B. "HouseResource"
+        return \App\Models\ResourceConfig::where('resource', $resourceName)->value('navigation_icon') ?? 'heroicon-o-document-text';
+    }
+
     public array $logs = [];
 
     public function mount(): void
     {
         $this->loadLogs();
+          $user = auth()->user();
+
     }
 
     public function loadLogs(): void
     {
         $logPath = storage_path('logs');
+        $user = auth()->user();
+        #dump($user->hasPermissionTo('view_any_role'));
+        #dd($user->hasPermissionTo('view permissions'));
 
         $files = collect(File::files($logPath))
             ->filter(fn ($file) => $file->getExtension() === 'log')
