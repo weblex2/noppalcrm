@@ -91,21 +91,10 @@ class ResourceConfigResource extends Resource
                     }
                 })
                 ->reactive(),
-            /* Forms\Components\Select::make('navigation_icon')
-                ->label('Icon auswählen')
-                ->options([
-                    'heroicon-o-user' => '<x-heroicon-o-user class="w-5 h-5 inline" /> User',
-                    'heroicon-o-cog' => '<x-heroicon-o-cog class="w-5 h-5 inline" /> Settings',
-                    'heroicon-o-document-text' => '<x-heroicon-o-document-text class="w-5 h-5 inline" /> Document',
-                ])
-                ->disablePlaceholderSelection()
-                ->searchable()
-                ->allowHtml() // wichtig!
-                ->suffixIcon(fn ($state) => $state), // zeigt das aktuell gewählte Icon, */
             Forms\Components\TextInput::make('navigation_icon'),
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
-            Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
+            #Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
             Forms\Components\TextInput::make('navigation_sort')->label('Navigation Order')->numeric(),
             ]
         )->columns(4);
@@ -145,7 +134,7 @@ class ResourceConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('navigation_icon'),
                 Tables\Columns\IconColumn::make('keep_filter')->label('Keep Filter')->boolean(),
-                Tables\Columns\IconColumn::make('show_in_nav_bar')->label('Show in Navbar')->boolean(),
+                #Tables\Columns\IconColumn::make('show_in_nav_bar')->label('Show in Navbar')->boolean(),
                 Tables\Columns\TextColumn::make('navigation_sort'),
                 ]
             )
