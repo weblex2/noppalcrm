@@ -25,6 +25,11 @@ class FilamentController extends Controller
         return $funcName;
     }
 
+    public static function getModelName($string){
+        $model = "\\App\\Models\\". Str::of($string)->beforeLast('Resource')->studly()->singular();
+        return $model;
+    }
+
     public static function getTableNameFromResource($resource)
     {
         // "ContactPersonResource" -> "ContactPerson"
@@ -37,9 +42,18 @@ class FilamentController extends Controller
     public function checkIfRelationExists(array $config): bool
     {
         $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
+        $sourceClass = self::getModelName($config['source']);
         $targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
+        $targetClass = self::getModelName($config['target']);
         $relationType = $config['method'];
-        $relationName = Str::plural($config['relation_name']);
+        if ($config['method']=='HasMany'){
+           $relationName = Str::plural($config['relation_name']);
+           $config['relation_name'] = $relationName;
+        }
+        else{
+            $relationName = $config['relation_name'];
+        }
+
 
         /* if ($config['method']=='HasMany'){
             $sourceClass = "\\App\\Models\\" . Str::studly(Str::singular($config['target']));
@@ -60,7 +74,8 @@ class FilamentController extends Controller
 
     private function createRelation($config, $targetClass) :bool{
         // get the trait file
-        $traitName = Str::studly(Str::singular($config['source']))."Relations";
+        $traitName = Str::of($config['source'])->beforeLast('Resource');
+        $traitName = "{$traitName}Relations";
         $targetPath = app_path("Traits/{$traitName}.php");
         $stubPath = app_path('Filament/stubs/filament/relations/'.$config['method'].'.stub');
         if (!file_exists($stubPath)){
@@ -78,11 +93,13 @@ class FilamentController extends Controller
     }
 
     public function traitExists($baseName){
+        $baseName = Str::of($baseName)->beforeLast('Resource');
         $traitName = "{$baseName}Relations";
         $targetPath = app_path("Traits/{$traitName}.php");
         return file_exists($targetPath);
     }
     protected function generateTrait($baseName){
+        $baseName = Str::of($baseName)->beforeLast('Resource');
         $traitName = "{$baseName}Relations";
         $stubPath = base_path('app/Filament/stubs/filament/relations/traitContent.stub');
         $targetPath = app_path("Traits/{$traitName}.php");
@@ -155,7 +172,7 @@ class FilamentController extends Controller
         return $filters;
     }
 
-    public static function getResourcesDropdown($incRelMan = true, $incPages = true): array
+    public static function getResourcesDropdown($incRelMan = true, $incPages = true, $incRepeaters = true): array
     {
         $resources = Filament::getResources();
         $tables = [];
@@ -177,11 +194,10 @@ class FilamentController extends Controller
             $label = $resourceClass::getPluralLabel() ?: Str::headline(class_basename($modelClass));
             $key = Str::studly($table) . 'Resource';
 
-            //$tables[$key] = $label;
             $tables[$key] = $key;
 
             // RelationManagers einbeziehen
-            if ($incRelMan){
+            if ($incRelMan) {
                 if (method_exists($resourceClass, 'getRelations')) {
                     foreach ($resourceClass::getRelations() as $relationManagerClass) {
                         if (!class_exists($relationManagerClass)) {
@@ -204,10 +220,8 @@ class FilamentController extends Controller
                             }
 
                             $relatedModel = $relation->getRelated();
-                            $relatedTable = Str::singular($relatedModel->getTable());
                             $relatedLabel = Str::headline(Str::plural(class_basename($relatedModel)));
 
-                            // Key und Label zusammensetzen
                             $relationKey = Str::studly($table) . 'Resource::' . $relationName;
                             $relationLabel = $label . ' → ' . $relatedLabel;
 
@@ -220,7 +234,9 @@ class FilamentController extends Controller
             }
         }
 
-        if ($incPages){
+
+        // Pages mit einbeziehen
+        if ($incPages) {
             $pageFiles = \File::files(app_path('Filament/Pages'));
 
             foreach ($pageFiles as $file) {
@@ -261,6 +277,7 @@ class FilamentController extends Controller
 
         $fullClass = 'App\\Filament\\Resources\\' . $resourceClass;
         $table = null;
+        $fields = [];
 
         if (class_exists($fullClass) && method_exists($fullClass, 'getModel')) {
             $modelClass = $fullClass::getModel();
@@ -276,14 +293,45 @@ class FilamentController extends Controller
             }
         }
 
-        if (!$table || !Schema::hasTable($table)) {
-            return [];
+        // ✅ DB-Felder holen
+        $dbFields = [];
+        if ($table && Schema::hasTable($table)) {
+            $dbFields = collect(Schema::getColumnListing($table))
+                ->mapWithKeys(fn ($column) => [$column => $column])
+                ->toArray();
         }
 
-        return collect(Schema::getColumnListing($table))
-            ->mapWithKeys(fn ($column) => [$column => $column])
-            ->toArray();
+        // ✅ Repeater-Felder aus der DB holen
+        $repeaterResources = \DB::table('filament_configs')
+        ->where('resource', $resourceClass)
+        ->whereNotNull('repeats_resource')
+        ->pluck('repeats_resource');
+
+        $repeaterFields = [];
+
+        foreach ($repeaterResources as $repeaterResource) {
+            $repeaterClass = 'App\\Filament\\Resources\\' . $repeaterResource;
+
+            if (class_exists($repeaterClass) && method_exists($repeaterClass, 'getModel')) {
+                $modelClass = $repeaterClass::getModel();
+                $modelInstance = new $modelClass();
+                $repeaterTable = $modelInstance->getTable();
+
+                if (Schema::hasTable($repeaterTable)) {
+                    $cols = Schema::getColumnListing($repeaterTable);
+
+                    foreach ($cols as $col) {
+                        // Prefix mit Repeater-Name → eindeutige Keys
+                        $repeaterFields[$col] =  $col. ' → ' . $repeaterResource ." (Repeater) ";
+                    }
+                }
+            }
+        }
+
+        // 🔹 3. Alles zusammenführen
+        return array_merge($dbFields, $repeaterFields);
     }
+
 
 
     public static function getNavigationGroups(){

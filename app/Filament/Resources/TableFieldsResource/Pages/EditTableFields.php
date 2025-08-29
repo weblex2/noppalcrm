@@ -38,6 +38,19 @@ class EditTableFields extends EditRecord
 
             // Controller-Methode aufrufen
             $exists = app(FilamentController::class)->checkIfRelationExists($config);
+
+
+            // Prüfen, ob die Section ein Repeater ist
+            $isRepeater = \DB::table('filament_configs')
+                ->where('resource', $data['table'])
+                ->where('repeats_resource', $data['section'])
+                ->where('is_repeater', 1)
+                ->exists();
+
+            if ($isRepeater) {
+                \Log::channel('crm')->info("Section {$data['section']} ist ein Repeater.");
+                // Hier ggf. spezielle Logik für Repeater einfügen
+            }
         }
 
         return $data;

@@ -298,14 +298,40 @@ class TableFieldsResource extends Resource
                         ->modalWidth('6xl') // 🎯 HIER Modalbreite setzen
                         //->slideOver()
                         ->mutateFormDataUsing(function (array $data) {
-                            if ($data['type'] === 'relation') {
-                                $config['source'] = $data['table'];
-                                $config['target'] = $data['relation_table'];
-                                $config['method'] = 'BelongsTo';
-                                $config['field'] = $data['field'];
-                                $config['relation_name'] = $data['relation_table'];
 
-                                app(FilamentController::class)->checkIfRelationExists($config);
+
+                            if ($data['type'] === 'relation') {
+
+                                // Prüfen, ob die Section ein Repeater ist
+                                // und evtl eine neue Relation erstellen
+                                $isRepeater = (array)\DB::table('filament_configs')
+                                    ->where('resource', $data['table'])
+                                    //->where('repeats_resource', $data['section'])
+                                    ->where('section_nr', $data['section'])
+                                    ->where('is_repeater', 1)
+                                    ->first();
+
+                                // Repeater
+                                if (count($isRepeater)>0) {
+                                    \Log::channel('crm')->info("Section {$data['section']} ist ein Repeater.");
+                                    // Check if we have a relation between the repeater and the field
+                                    $config['source'] = $isRepeater['repeats_resource'];
+                                    $config['target'] = $data['relation_table'];
+                                    $config['method'] = 'BelongsTo';
+                                    $config['field'] = $data['field'];
+                                    $config['relation_name'] = $data['relation_table'];
+                                    $res = app(FilamentController::class)->checkIfRelationExists($config);
+                                }
+
+                                // Normal
+                                else{
+                                    $config['source'] = $data['table'];
+                                    $config['target'] = $data['relation_table'];
+                                    $config['method'] = 'BelongsTo';
+                                    $config['field'] = $data['field'];
+                                    $config['relation_name'] = $data['relation_table'];
+                                    $res = app(FilamentController::class)->checkIfRelationExists($config);
+                                }
                             }
 
                             return $data;
@@ -352,94 +378,6 @@ class TableFieldsResource extends Resource
             'edit' => Pages\EditTableFields::route('/{record}/edit'),
         ];
     }
-
-    public static function getTableOptions(): array
-    {
-        $resources = Filament::getResources();
-        $tables = [];
-
-        foreach ($resources as $resourceClass) {
-            if (!method_exists($resourceClass, 'getModel')) {
-                continue;
-            }
-
-            $modelClass = $resourceClass::getModel();
-
-            if (!class_exists($modelClass)) {
-                continue;
-            }
-
-            $model = new $modelClass();
-            $table = $model->getTable();
-            $label = $resourceClass::getPluralLabel() ?: Str::plural(class_basename($modelClass));
-
-            $tables[$table] = $label;
-
-            // ➕ RelationManagers einbeziehen
-            if (method_exists($resourceClass, 'getRelations')) {
-                foreach ($resourceClass::getRelations() as $relationManagerClass) {
-                    if (!class_exists($relationManagerClass)) {
-                        continue;
-                    }
-
-                    try {
-                        $reflection = new \ReflectionClass($relationManagerClass);
-                        $property = $reflection->getProperty('relationship');
-                        $property->setAccessible(true);
-                        $relationName = $property->getValue();
-
-                        if (!method_exists($modelClass, $relationName)) {
-                            continue;
-                        }
-
-                        $relation = (new $modelClass)->{$relationName}();
-
-                        if (!$relation instanceof \Illuminate\Database\Eloquent\Relations\Relation) {
-                            continue;
-                        }
-
-                        $relatedModel = $relation->getRelated();
-                        $relatedTable = $relatedModel->getTable();
-                        $relatedLabel = Str::plural(class_basename($relatedModel));
-                        $key = $table . '::' . $relationName; // z. B. 'contacts::customer_contacts'
-                        $tables[$key] = $label . ' → ' . $relatedLabel;
-                    } catch (\Throwable $e) {
-                        \Log::warning("RelationManager $relationManagerClass konnte nicht gelesen werden: {$e->getMessage()}");
-                        continue;
-                    }
-                }
-
-            }
-        }
-
-        asort($tables);
-        return $tables;
-    }
-
-
-    public static function getFieldOptions(?string $tableKey): array
-    {
-        if (!$tableKey) {
-            return [];
-        }
-
-        // Prüfen, ob es sich um einen RelationManager-Eintrag handelt
-        if (str_contains($tableKey, '::')) {
-            [$relationName, $table] = explode('::', $tableKey, 2);
-        } else {
-            $table = $tableKey;
-        }
-
-        if (!Schema::hasTable($table)) {
-            return [];
-        }
-
-        return collect(Schema::getColumnListing($table))
-            ->mapWithKeys(fn ($column) => [$column => $column ?? 'YYY'])
-            ->toArray();
-    }
-
-
 
 
     public static function mutateFormDataBeforeSave(array $data): array
