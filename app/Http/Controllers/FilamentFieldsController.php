@@ -92,16 +92,17 @@ class FilamentFieldsController extends Controller
                 if ($isWizard){
 
                     //$sectionFields = $groupFields->where('section', $sectionId);
-                    $modalFunctionName = FilamentController::getModelFunctionName($section_config->repeats_resource);
+
                     if (!isset($section_config) || $section_config->is_repeater !== 1) {
                         $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
                             ->schema($fieldSchemas)
                             ->columns(3);
                     } else {
+                        $modalFunctionName = FilamentController::getModelFunctionName($section_config->repeats_resource);
                         $sections[] = Forms\Components\Wizard\Step::make($sectionLabel)
                             ->schema([
-                                Forms\Components\Repeater::make($modalFunctionName)
-                                    ->relationship()
+                                Forms\Components\Repeater::make("Repeater")
+                                    ->relationship($modalFunctionName)
                                     ->schema($fieldSchemas)
                                     ->columns(3)
                             ]);
