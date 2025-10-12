@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class NukeResource extends Command
 {
@@ -53,9 +54,24 @@ class NukeResource extends Command
         if ($this->option('force-db')) {
             \DB::statement("DROP TABLE IF EXISTS {$plural}");
             $this->info("Tabelle '{$plural}' automatisch gelöscht (--force-db).");
+
+             // Einträge aus table_fields löschen
+            $deletedFields = \DB::table('table_fields')
+                ->where('table', $plural)
+                ->delete();
+
+            $this->info("{$deletedFields} Einträge in 'table_fields' gelöscht.");
+
         } elseif ($this->confirm("Möchtest du die Tabelle '{$plural}' auch aus der DB löschen?", false)) {
             \DB::statement("DROP TABLE IF EXISTS {$plural}");
             $this->info("Tabelle '{$plural}' gelöscht.");
+
+            // Einträge aus table_fields löschen
+            $deletedFields = \DB::table('table_fields')
+                ->where('table', $plural)
+                ->delete();
+
+            $this->info("{$deletedFields} Einträge in 'table_fields' gelöscht.");
         }
 
         $this->info("Ressource '{$name}' erfolgreich entfernt.");
