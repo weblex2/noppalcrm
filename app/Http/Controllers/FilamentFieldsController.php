@@ -16,6 +16,7 @@ use App\Models\FilamentAction;
 use App\Models\ResourceConfig;
 use Filament\Tables\Actions;
 use Filament\Forms\Components\Actions\Action;
+use Illuminate\Support\Facades\Log;
 
 class FilamentFieldsController extends Controller
 {
@@ -32,6 +33,7 @@ class FilamentFieldsController extends Controller
 
 
     function __construct($tableName='', $form=0){
+        Log::channel('database')->info('Benutzer hat sich angemeldet', ['user_id' => 1]);
         $this->tableName = $tableName;
         $this->userId  = Auth::id();
         $this->isForm = $form;
@@ -355,21 +357,37 @@ class FilamentFieldsController extends Controller
         $this->field->numeric();
     }
 
-    private function formatDate(){
+    private function formatDate()
+    {
         $this->field->formatStateUsing(function ($state) {
-            if ($this->config->type=='date'){
-                $format = 'd.m.Y';
+            if (empty($state)) {
+                return '-';
             }
-            elseif ($this->config->type=='datetime'){
-            $format = 'd.m.Y H:i:s';
-            }
-             if (! $state instanceof \DateTimeInterface || $state->format('Y') < 1900) {
-            return '-';
-            }
-            return $state->format($format ?? 'd.m.Y');
 
+            // Format bestimmen
+            $format = match ($this->config->type) {
+                'datetime' => 'd.m.Y H:i:s',
+                default => 'd.m.Y',
+            };
+
+            // Falls $state ein String ist → in Carbon umwandeln
+            if (is_string($state)) {
+                try {
+                    $state = \Carbon\Carbon::parse($state);
+                } catch (\Exception $e) {
+                    return '-';
+                }
+            }
+
+            // Nur gültige Datumswerte anzeigen
+            if (! $state instanceof \DateTimeInterface || $state->format('Y') < 1900) {
+                return '-';
+            }
+
+            return $state->format($format);
         });
     }
+
 
     private function align(){
         if ($this->config->align=='r'){

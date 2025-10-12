@@ -41,18 +41,15 @@ class FilamentController extends Controller
 
     public function checkIfRelationExists(array $config): bool
     {
-        $sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
+        #$sourceClass = "\\App\\Models\\". Str::studly(Str::singular($config['source']));
         $sourceClass = self::getModelName($config['source']);
-        $targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
+        #$targetClass = "\\App\\Models\\". Str::studly(Str::singular($config['target']));
         $targetClass = self::getModelName($config['target']);
         $relationType = $config['method'];
         if ($config['method']=='HasMany'){
-           $relationName = Str::plural($config['relation_name']);
-           $config['relation_name'] = $relationName;
+           $config['relation_name'] = Str::plural($config['relation_name']);
         }
-        else{
-            $relationName = $config['relation_name'];
-        }
+        $relationName = $config['relation_name'];
 
 
         /* if ($config['method']=='HasMany'){
@@ -74,7 +71,7 @@ class FilamentController extends Controller
 
     private function createRelation($config, $targetClass) :bool{
         // get the trait file
-        $traitName = Str::of($config['source'])->beforeLast('Resource');
+        $traitName = Str::of($config['source'])->ucfirst()->beforeLast('Resource');
         $traitName = "{$traitName}Relations";
         $targetPath = app_path("Traits/{$traitName}.php");
         $stubPath = app_path('Filament/stubs/filament/relations/'.$config['method'].'.stub');
@@ -385,4 +382,34 @@ class FilamentController extends Controller
         }
         return $navItems;
     }
+
+    public function ensureForeignKey(
+            string $table,
+            string $column,
+            string $foreignTable,
+            string $foreignColumn = 'id',
+            ?string $constraintName = null
+        ): void {
+            $dbName = DB::getDatabaseName();
+
+            // Standard-Name wie Laravel ihn oft generiert
+            $constraintName = $constraintName ?? "{$table}_{$column}_foreign";
+
+            // Prüfen ob es den FK schon gibt
+            $exists = DB::table('information_schema.KEY_COLUMN_USAGE')
+                ->where('TABLE_SCHEMA', $dbName)
+                ->where('TABLE_NAME', $table)
+                ->where('COLUMN_NAME', $column)
+                ->where('CONSTRAINT_NAME', $constraintName)
+                ->exists();
+
+            if (! $exists) {
+                Schema::table($table, function ($table) use ($column, $foreignTable, $foreignColumn, $constraintName) {
+                    $table->foreign($column, $constraintName)
+                        ->references($foreignColumn)
+                        ->on($foreignTable)
+                        ->onDelete('cascade');
+                });
+            }
+        }
 }

@@ -131,7 +131,17 @@ return [
             'driver' => 'single',
             'path' => storage_path('logs/crm.log'),
             'level' => 'debug',
-        ]
+        ],
+
+        'database' => [
+            'driver' => 'custom',
+             'via' => function ($app) {
+                $logger = new \Monolog\Logger('database');
+                $logger->pushHandler(new \App\Logging\DatabaseLogger());
+                return $logger;
+            },
+            'level' => 'debug', // alle Logs ab debug
+        ],
 
     ],
 
