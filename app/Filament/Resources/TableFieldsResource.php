@@ -4,7 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\TableFieldsResource\Pages;
 use App\Filament\Resources\TableFieldsResource\RelationManagers;
-use App\Models\TableFields;
+use App\Models\TableField;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -26,7 +26,7 @@ use Filament\Tables\Enums\ActionsPosition;
 
 class TableFieldsResource extends Resource
 {
-    protected static ?string $model = TableFields::class;
+    protected static ?string $model = TableField::class;
 
     public static function getNavigationLabel(): string
     {
@@ -86,12 +86,12 @@ class TableFieldsResource extends Resource
                         Forms\Components\Select::make('table')
                             ->label('Tabelle')
                             ->options(function (callable $get) {
-                                $tableOrResource = $get('table');
+                                /* $tableOrResource = $get('table');
                                 if (!$tableOrResource) {
                                     return [];
-                                }
+                                } */
 
-                                return FilamentController::getResourcesDropdown($tableOrResource);
+                                return FilamentController::getResourcesDropdown();
                             })
                             ->required()
                             ->reactive() // wichtig für Reaktivität
@@ -240,6 +240,13 @@ class TableFieldsResource extends Resource
                 Tables\Columns\TextColumn::make('field'),
                 Tables\Columns\TextColumn::make('type'),
                 Tables\Columns\TextColumn::make('label')->searchable(),
+                Tables\Columns\TextColumn::make('section')
+                    ->label('Section')
+                    ->formatStateUsing(function ($state, $record) {
+                        return \App\Models\FilamentConfig::where('section_nr', $state)
+                            ->where('resource', $record->table)
+                            ->value('section_name') ?? '-';
+                    }),
                 Tables\Columns\TextColumn::make('icon')->icon(fn ($record) => $record->icon),
                 Tables\Columns\TextColumn::make('icon_color'),
                 Tables\Columns\IconColumn::make('link')->boolean()->getStateUsing(fn ($record) => !empty($record->link)),
@@ -270,7 +277,7 @@ class TableFieldsResource extends Resource
                 SelectFilter::make('table')
                     ->options(function () {
                          // Hole alle distinct "table" Werte aus der Tabelle
-                        $options = TableFields::select('table')
+                        $options = TableField::select('table')
                             ->distinct()
                             ->pluck('table', 'table')
                             ->toArray();
@@ -382,7 +389,7 @@ class TableFieldsResource extends Resource
 
     public static function mutateFormDataBeforeSave(array $data): array
     {
-        $exists = TableFields::where('form', $data['form'])
+        $exists = TableField::where('form', $data['form'])
             ->where('table', $data['table'])
             ->where('field', $data['field'])
             ->exists();

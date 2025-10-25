@@ -56,7 +56,7 @@ class CreateTableFields extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         //\Log::channel('crm')->info($data);
-        $exists = \App\Models\TableFields::where('form', $data['form'])
+        $exists = \App\Models\TableField::where('form', $data['form'])
             ->where('table', $data['table'])
             ->where('field', $data['field'])
             ->exists();

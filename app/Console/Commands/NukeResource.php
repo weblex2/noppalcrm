@@ -17,11 +17,13 @@ class NukeResource extends Command
         $name = Str::studly($this->argument('name'));
         $lower = Str::snake($name);
         $plural = Str::plural($lower);
+        $resourceName = "{$name}Resource";
 
         $paths = [
             app_path("Models/{$name}.php"),
             app_path("Filament/Resources/{$name}Resource.php"),
             app_path("Filament/Resources/{$name}Resource/Pages"),
+            app_path("Traits/{$name}Relations.php"),
             resource_path("views/{$plural}"),
             //database_path("migrations"),
         ];
@@ -57,10 +59,20 @@ class NukeResource extends Command
 
              // Einträge aus table_fields löschen
             $deletedFields = \DB::table('table_fields')
-                ->where('table', $plural)
+                ->where('table', $resourceName)
                 ->delete();
 
             $this->info("{$deletedFields} Einträge in 'table_fields' gelöscht.");
+            \Log::info("{$deletedFields} Einträge in 'table_fields' gelöscht.");
+
+
+             // Einträge aus table_fields löschen
+            $deletedFields = \DB::table('filament_configs')
+                ->where('resource', $resourceName)
+                ->delete();
+
+            $this->info("{$deletedFields} Einträge in 'filament_configs' gelöscht.");
+            \Log::info("{$deletedFields} Einträge in 'filament_configs' gelöscht.");
 
         } elseif ($this->confirm("Möchtest du die Tabelle '{$plural}' auch aus der DB löschen?", false)) {
             \DB::statement("DROP TABLE IF EXISTS {$plural}");

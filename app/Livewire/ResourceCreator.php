@@ -143,10 +143,10 @@ class ResourceCreator extends Component implements HasForms
 
     public function render()
     {
-        Log::info('ResourceCreator: Render aufgerufen', [
+        /* Log::info('ResourceCreator: Render aufgerufen', [
             'time' => now()->toDateTimeString(),
             'livewire_id' => $this->getId(),
-        ]);
+        ]); */
         return view('livewire.resource-creator');
     }
 

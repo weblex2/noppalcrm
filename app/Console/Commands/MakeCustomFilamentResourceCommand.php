@@ -14,7 +14,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Arr;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Illuminate\Support\Facades\File;
-
+use App\Models\ResourceConfig;
+use Illuminate\Support\Str;
 use function Laravel\Prompts\select;
 use function Laravel\Prompts\text;
 
@@ -419,6 +420,27 @@ class MakeCustomFilamentResourceCommand extends Command
                 'resource' => "{$namespace}\\{$resourceClass}",
                 'resourceClass' => $resourceClass,
                 'resourcePageClass' => $editResourcePageClass,
+            ]);
+        }
+
+        try{
+            $resourceDefaults = [
+                'resource' =>  $resourceClass,
+                'navigation_group' => '',
+                'is_wizard' => 0,
+                //'navigation_icon' => '',
+                'navigation_label' => Str::of($resourceClass)->before('Resource')->afterLast('\\')->plural()->toString(),
+                'navigation_sort' => 0,
+                'show_in_nav_bar' => 1,
+                'keep_filter' => 1,
+
+            ];
+            $res = ResourceConfig::create($resourceDefaults);
+        }
+        catch(\Exception $e){
+            \Log::channel('crm')->error("Error creating FilamentConfig data", [
+            'error' => $e->getMessage(),
+            'data' => $resourceDefaults,
             ]);
         }
 

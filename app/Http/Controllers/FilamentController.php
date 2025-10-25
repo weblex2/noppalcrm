@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Resources\ResourceConfigResource;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use App\Models\FilamentAction;
 use Filament\Facades\Filament;
 use App\Models\FilamentConfig;
+use App\Models\ResourceConfig;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Forms\Components\TextInput;

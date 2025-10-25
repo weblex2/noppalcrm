@@ -8,7 +8,7 @@ use App\Models\Quote;
 use Illuminate\Support\Facades\Log;
 use App\Exports\CustomExport;
 use App\Models\GeneralSetting;
-use App\Models\FilTableFields;
+use App\Models\FilTableField;
 use Illuminate\Support\Facades\Artisan;
 
 
@@ -101,9 +101,9 @@ class FilamentHelper
                 'field' => $field['name'],
                 'type' => $type,
             ];
-            FilTableFields::create($newfield);
+            FilTableField::create($newfield);
             $newfield['form']=1;
-            FilTableFields::create($newfield);
+            FilTableField::create($newfield);
             // Delete the migration file
             unlink($filename);
 

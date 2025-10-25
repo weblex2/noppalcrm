@@ -94,7 +94,8 @@ class ResourceConfigResource extends Resource
             Forms\Components\TextInput::make('navigation_icon'),
             Forms\Components\TextInput::make('navigation_label'),
             Forms\Components\Toggle::make('keep_filter'),
-            #Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar'),
+            Forms\Components\Toggle::make('is_wizard'),
+            Forms\Components\Toggle::make('show_in_nav_bar')->label('Show in Navbar')->default(true),
             Forms\Components\TextInput::make('navigation_sort')->label('Navigation Order')->numeric(),
             ]
         )->columns(4);
@@ -133,6 +134,7 @@ class ResourceConfigResource extends Resource
                 Tables\Columns\TextColumn::make('navigation_group'),
                 Tables\Columns\TextColumn::make('navigation_label'),
                 Tables\Columns\TextColumn::make('navigation_icon'),
+                Tables\Columns\IconColumn::make('is_wizard')->boolean(),
                 Tables\Columns\IconColumn::make('keep_filter')->label('Keep Filter')->boolean(),
                 #Tables\Columns\IconColumn::make('show_in_nav_bar')->label('Show in Navbar')->boolean(),
                 Tables\Columns\TextColumn::make('navigation_sort'),
