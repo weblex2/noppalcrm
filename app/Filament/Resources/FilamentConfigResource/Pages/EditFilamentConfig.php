@@ -27,7 +27,7 @@ class EditFilamentConfig extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         \Log::channel('crm')->info($data);
-        if ($data['is_repeater'] == true) {
+        if (isset($data['is_repeater']) && $data['is_repeater'] == true) {
             $config['source'] =  Str::of($data['resource'])->replaceLast('Resource', '')->snake()->lower()->value();
             $config['target'] = Str::of($data['repeats_resource'])->replaceLast('Resource', '')->snake()->lower()->value();
             $config['method'] = 'HasMany';
