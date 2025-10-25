@@ -71,9 +71,9 @@ class FilamentConfigResource extends Resource
                         Forms\Components\Select::make('field')
                              ->options(fn (callable $get) => array_filter(FilamentController::getResourcesFieldDropdown($get('resource')), fn($label) => $label !== null && $label !== '')),
                         Forms\Components\TextInput::make('key')
-                            ->required(fn (\Closure $get) => $get('type') === 'filter')
-                            ->default(0)
-                            ->maxLength(191),
+                             ->required(fn ($get) => $get('type') === 'filter')
+                             ->default(0)
+                             ->maxLength(191),
                         Forms\Components\TextInput::make('value')
                             ->required()
                             ->maxLength(191),
@@ -81,9 +81,9 @@ class FilamentConfigResource extends Resource
                             ->numeric(),
                         Forms\Components\TextInput::make('navigation_group'),
                         Forms\Components\TextInput::make('navigation_label'),
-                        Forms\Components\TextInput::make('section_name'),
-                        Forms\Components\TextInput::make('icon'),
-                        HeroiconPicker::make('icon')
+                        //Forms\Components\TextInput::make('section_name'),
+                        Forms\Components\TextInput::make('icon')
+                        /* HeroiconPicker::make('icon')
                             ->label('Icon auswählen')
                             ->icons([
                                 'heroicon-o-user',
@@ -92,7 +92,7 @@ class FilamentConfigResource extends Resource
                                 'heroicon-o-cog',
                                 'heroicon-o-archive',
                                 // usw. (du kannst hier alle verfügbaren Heroicons eintragen)
-                            ])
+                            ])*/
 
                         ])
                         ->columns(4)
