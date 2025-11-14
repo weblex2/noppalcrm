@@ -157,6 +157,7 @@ class FilamentFieldsController extends Controller
                 switch ($tableField->type){
                     case "text": {
                         $this->field = Forms\Components\TextInput::make($tableField->field);
+                        //$this->field->suffixIcon('heroicon-o-information-circle');
                         break;
                     }
                     case "select": {

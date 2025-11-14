@@ -17,6 +17,9 @@ use Filament\Forms\Components\TextInput;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Filament\Navigation\NavigationItem;
+use Illuminate\Support\Facades\Log;
+use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Artisan;
 
 
 class FilamentController extends Controller
@@ -414,4 +417,114 @@ class FilamentController extends Controller
                 });
             }
         }
+
+    public function createResource($resourceName): bool
+    {
+
+        $resourceName = Str::studly($resourceName) . 'Resource';
+        //$navigationGroup = $data['navigation_group'];
+
+        try {
+            $error = false;
+            $status = Artisan::call('make:custom-filament-resource', [
+                'name' => $resourceName,
+                '--model' => true,
+                '--migration' => true,
+                '--generate' => true,
+                '--force' => true,
+            ]);
+
+            $output = Artisan::output();
+
+            if ($status === 0) {
+                $this->addTraitToModel($resourceName);
+                session()->flash('success', "✅ Ressource erfolgreich erstellt:\n<pre>$output</pre>");
+                Notification::make()
+                ->title("Neue Resource")
+                ->success()
+                ->body("Die neue Resource wurde erfolgreich erstellt.")
+                ->send();
+
+                Log::channel('crm')->info('ResourceCreator: Ressource erstellt', [
+                    'resourceName' => $resourceName,
+                    'output' => $output,
+                ]);
+
+                $status = Artisan::call('shield:generate --all --panel=admin');
+                if ($status === 0){
+                    session()->flash('success', "✅ Policies erfolgreich erstellt:\n<pre>$output</pre>");
+                    Notification::make()
+                        ->title("Policy Refresh")
+                        ->success()
+                        ->body("Die Policies wurden erfolgreich refreshed.")
+                        ->send();
+                }
+
+            } else {
+                $error = true;
+                session()->flash('error', "❌ Fehler beim Erstellen der Ressource:\n<pre>$output</pre>");
+                Notification::make()
+                        ->title("Fehler beim Erstellen der Ressource")
+                        ->danger()
+                        ->body($output)
+                        ->send();
+                Log::error('ResourceCreator: Fehler beim Erstellen der Ressource', [
+                    'output' => $output,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            $error = true;
+            session()->flash('error', '⚠️ Fehler: ' . $e->getMessage());
+            Notification::make()
+                        ->title("Fehler beim Erstellen der Ressource")
+                        ->danger()
+                        ->body($e->getMessage())
+                        ->send();
+            Log::error('ResourceCreator: Ausnahme beim Erstellen der Ressource', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+        } finally {
+            // We don't want to keep the migration file
+            $this->removeMigrationFile($resourceName);
+            if  ($error){
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+    }
+
+    private function addTraitToModel($resourceName){
+        $baseName = Str::studly(class_basename(trim($resourceName,'Resource')));
+        $modelClass = 'App\\Models\\' . $baseName;
+        // check if Trait already exists
+        if (!file_exists("app\\Traits\\".$baseName."Relations.php")){
+            $path = app_path("Traits/{$baseName}Relations.php");
+            $content = file_get_contents(app_path("Filament/stubs/filament/relations/traitContent.stub"));
+            $content = str_replace("{{Model}}",$baseName,$content);
+            // Ordner erstellen, falls er nicht existiert
+            if (!File::exists(dirname($path))) {
+                File::makeDirectory(dirname($path), 0755, true);
+            }
+            File::put($path, $content);
+        }
+    }
+
+    private function removeMigrationFile($resourceName){
+        // Migration-Datei finden
+        $migrationFiles = File::files(database_path('migrations'));
+        $latestMigration = collect($migrationFiles)
+            ->sortByDesc(fn ($file) => $file->getMTime())
+            ->first();
+        $tableName = Str::plural(strtolower(trim($resourceName,'Resource')));
+        // Migration löschen, wenn sie wirklich neu ist
+        if ($latestMigration && str_contains($latestMigration->getFilename(), strtolower($tableName))) {
+            $res = File::delete($latestMigration->getPathname());
+        }
+    }
+
 }
