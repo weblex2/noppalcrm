@@ -52,7 +52,7 @@ class DummyResource extends Resource
 
    public static function form(Form $form): Form
     {
-        $fc = new FilamentFieldsController('companies', 1);
+        $fc = new FilamentFieldsController('companies', 1, true);
         $schema = $fc->getSchema() ?? [];
 
         $schema = self::addSuffixIconToTextInputs($schema);

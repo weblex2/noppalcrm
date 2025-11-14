@@ -32,11 +32,14 @@ class FilamentFieldsController extends Controller
     private $section_ids= [];
 
 
-    function __construct($tableName='', $form=0){
+    function __construct($tableName='', $form=0, $createRes = false){
         Log::channel('database')->info('Benutzer hat sich angemeldet', ['user_id' => 1]);
         $this->tableName = $tableName;
         $this->userId  = Auth::id();
         $this->isForm = $form;
+        if ($createRes){
+            $this->dummy = true;
+        }
     }
 
     public function index($table=''){
@@ -157,7 +160,9 @@ class FilamentFieldsController extends Controller
                 switch ($tableField->type){
                     case "text": {
                         $this->field = Forms\Components\TextInput::make($tableField->field);
-                        //$this->field->suffixIcon('heroicon-o-information-circle');
+                        if ($this->dummy){
+                            $this->field->suffixIcon('heroicon-o-information-circle');
+                        }
                         break;
                     }
                     case "select": {
